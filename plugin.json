@@ -1,0 +1,9 @@
+{
+  "name": "ElasticExportIdealoDE",
+  "description": "This plugin adds the format IdealoDE to the Elastic Export.",
+  "namespace": "ElasticExportIdealoDE",
+  "author": "plentymarkets",
+  "type": "export",
+  "serviceProvider": "ElasticExportIdealoDE\\ElasticExportIdealoDEServiceProvider",
+  "version": 0.1
+}
