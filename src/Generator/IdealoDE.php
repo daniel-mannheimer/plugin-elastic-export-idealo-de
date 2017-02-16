@@ -68,17 +68,14 @@ class IdealoDE extends CSVGenerator
     /**
      * IdealoGenerator constructor.
      *
-     * @param ElasticExportCoreHelper $elasticExportHelper
      * @param ArrayHelper $arrayHelper
      * @param PropertySelectionRepositoryContract $propertySelectionRepository
      */
     public function __construct(
-        ElasticExportCoreHelper $elasticExportHelper,
         ArrayHelper $arrayHelper,
         PropertySelectionRepositoryContract $propertySelectionRepository
     )
     {
-        $this->elasticExportHelper = $elasticExportHelper;
         $this->arrayHelper = $arrayHelper;
         $this->propertySelectionRepository = $propertySelectionRepository;
     }
@@ -91,6 +88,7 @@ class IdealoDE extends CSVGenerator
      */
     protected function generateContent($resultList, array $formatSettings = [])
     {
+        $this->elasticExportHelper = pluginApp(ElasticExportCoreHelper::class);
         if(is_array($resultList) && count($resultList['documents']) > 0)
         {
             $settings = $this->arrayHelper->buildMapFromObjectList($formatSettings, 'key', 'value');
@@ -110,9 +108,9 @@ class IdealoDE extends CSVGenerator
             if(is_array($variationIdList) && count($variationIdList) > 0)
             {
                 /**
-                 * @var \ElasticExport\ES_IDL_ResultList\IdealoDE $idlResultList
+                 * @var \ElasticExportIdealoDE\IDL_ResultList\IdealoDE $idlResultList
                  */
-                $idlResultList = pluginApp(\ElasticExport\ES_IDL_ResultList\IdealoDE::class);
+                $idlResultList = pluginApp(\ElasticExportIdealoDE\IDL_ResultList\IdealoDE::class);
                 $idlResultList = $idlResultList->getResultList($variationIdList, $settings);
             }
 
