@@ -2,7 +2,7 @@
 
 namespace ElasticExportIdealoDE\Generator;
 
-use ElasticExportCore\Helper\ElasticExportCoreHelper;
+use ElasticExport\Helper\ElasticExportCoreHelper;
 use Plenty\Modules\DataExchange\Contracts\CSVGenerator;
 use Plenty\Modules\Helper\Services\ArrayHelper;
 use Plenty\Modules\Item\DataLayer\Models\Record;
@@ -89,7 +89,7 @@ class IdealoDE extends CSVGenerator
     protected function generateContent($resultList, array $formatSettings = [])
     {
         $this->elasticExportHelper = pluginApp(ElasticExportCoreHelper::class);
-        if(is_array($resultList) && count($resultList['documents']) > 0)
+        if(is_array($resultList['documents']) && count($resultList['documents']) > 0)
         {
             $settings = $this->arrayHelper->buildMapFromObjectList($formatSettings, 'key', 'value');
 
@@ -505,7 +505,7 @@ class IdealoDE extends CSVGenerator
      */
     private function getFreeText($item):string
     {
-        $characterMarketComponentList = $this->elasticExportHelper->getItemCharactersByComponent($item, self::IDEALO_DE, 1);
+        $characterMarketComponentList = $this->elasticExportHelper->getItemCharactersByComponent($this->idlVariations[$item['id']], self::IDEALO_DE, 1);
 
         $freeText = [];
 
