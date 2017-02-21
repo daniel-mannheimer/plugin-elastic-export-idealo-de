@@ -110,7 +110,7 @@ class IdealoDE extends CSVGenerator
                  * @var \ElasticExportIdealoDE\IDL_ResultList\IdealoDE $idlResultList
                  */
                 $idlResultList = pluginApp(\ElasticExportIdealoDE\IDL_ResultList\IdealoDE::class);
-                $idlResultList = $idlResultList->getResultList($variationIdList, $settings);
+                $idlResultList = $idlResultList->getResultList($variationIdList, $settings, $filter);
             }
 
             //Creates an array with the variationId as key to surpass the sorting problem
@@ -127,6 +127,10 @@ class IdealoDE extends CSVGenerator
             // Filter and create the grouped variations array
             foreach($resultList['documents'] as $variation)
             {
+                if(!array_key_exists($variation['id'], $this->idlVariations))
+                {
+                    continue;
+                }
                 // Check if it's the first item from the resultList
                 if ($currentItemId === null)
                 {
