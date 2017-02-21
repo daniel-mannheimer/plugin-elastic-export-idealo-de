@@ -81,12 +81,11 @@ class IdealoDE extends CSVGenerator
     }
 
     /**
-     * Generates and populates the data into the CSV file.
-     *
      * @param array $resultList
      * @param array $formatSettings
+     * @param array $filter
      */
-    protected function generateContent($resultList, array $formatSettings = [])
+    protected function generateContent($resultList, array $formatSettings = [], array $filter = [])
     {
         $this->elasticExportHelper = pluginApp(ElasticExportCoreHelper::class);
         if(is_array($resultList['documents']) && count($resultList['documents']) > 0)

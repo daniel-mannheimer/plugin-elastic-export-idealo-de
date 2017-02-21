@@ -9,14 +9,18 @@
   "license": "GNU AFFERO GENERAL PUBLIC LICENSE Version 3, 19 November 2007",
   "shortDescription": {
     "de": "Das Plugin ElasticExportIdealoDE fügt das Datenformat IdealoDE zum Elastischen Export hinzu.",
+  "pluginIcon": "icon_plugin_md.png",
+  "price": 0.00,
+  "shortDescription": {
+    "de": "Das Plugin ElasticExportRakutenDE fügt das Datenformat IdealoDE zum Elastischen Export hinzu.",
     "en": "This plugin adds the format IdealoDE to the Elastic Export."
   },
   "categories": [
     "3523"
   ],
-  "pluginIcon": "icon_plugin_md.png",
-  "price": 0.00,
   "version": 1.0,
+  "author": "plentymarkets GmbH",
+  "authorIcon": "icon_author_xs.png",
   "require":
   {
     "ElasticExport": 0.1
