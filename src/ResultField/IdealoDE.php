@@ -8,6 +8,7 @@ use Plenty\Modules\Helper\Services\ArrayHelper;
 use Plenty\Modules\Item\Search\Mutators\ImageMutator;
 use Plenty\Modules\Cloud\ElasticSearch\Lib\Source\Mutator\BuiltIn\LanguageMutator;
 use Plenty\Modules\Item\Search\Mutators\SkuMutator;
+use Plenty\Modules\Item\Search\Mutators\DefaultCategoryMutator;
 
 /**
  * Class IdealoDE
@@ -76,8 +77,10 @@ class IdealoDE extends ResultFields
          * @var ImageMutator $imageMutator
          */
         $imageMutator = pluginApp(ImageMutator::class);
-        $imageMutator->addMarket($reference);
-
+        if($imageMutator instanceof ImageMutator)
+        {
+            $imageMutator->addMarket($reference);
+        }
         /**
          * @var LanguageMutator $languageMutator
          */
@@ -87,7 +90,18 @@ class IdealoDE extends ResultFields
          * @var SkuMutator $skuMutator
          */
         $skuMutator = pluginApp(SkuMutator::class);
-        $skuMutator->setMarket($reference);
+        if($skuMutator instanceof SkuMutator)
+        {
+            $skuMutator->setMarket($reference);
+        }
+        /**
+         * @var DefaultCategoryMutator $defaultCategoryMutator
+         */
+        $defaultCategoryMutator = pluginApp(DefaultCategoryMutator::class);
+        if($defaultCategoryMutator instanceof DefaultCategoryMutator)
+        {
+            $defaultCategoryMutator->setPlentyId($settings->get('plentyId'));
+        }
 
         // Fields
         $fields = [
