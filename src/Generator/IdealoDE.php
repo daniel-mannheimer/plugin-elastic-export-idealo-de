@@ -3,7 +3,7 @@
 namespace ElasticExportIdealoDE\Generator;
 
 use ElasticExport\Helper\ElasticExportCoreHelper;
-use Plenty\Modules\DataExchange\Contracts\CSVGenerator;
+use Plenty\Modules\DataExchange\Contracts\CSVPluginGenerator;
 use Plenty\Modules\Helper\Services\ArrayHelper;
 use Plenty\Modules\Item\DataLayer\Models\Record;
 use Plenty\Modules\Item\DataLayer\Models\RecordList;
@@ -18,7 +18,7 @@ use Plenty\Modules\Item\Property\Models\PropertySelection;
  * Class IdealoDE
  * @package ElasticExportIdealoDE\Generator
  */
-class IdealoDE extends CSVGenerator
+class IdealoDE extends CSVPluginGenerator
 {
     const IDEALO_DE = 121.00;
     const IDEALO_CHECKOUT = 121.02;
@@ -85,7 +85,7 @@ class IdealoDE extends CSVGenerator
      * @param array $formatSettings
      * @param array $filter
      */
-    protected function generateContent($resultList, array $formatSettings = [], array $filter = [])
+    protected function generatePluginContent($resultList, array $formatSettings = [], array $filter = [])
     {
         $this->elasticExportHelper = pluginApp(ElasticExportCoreHelper::class);
         if(is_array($resultList['documents']) && count($resultList['documents']) > 0)
