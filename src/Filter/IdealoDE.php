@@ -2,11 +2,11 @@
 
 namespace ElasticExportIdealoDE\Filter;
 
-use Plenty\Modules\DataExchange\Contracts\FiltersForElasticSearchContract;
+use Plenty\Modules\DataExchange\Contracts\FiltersForElasticSearch;
 
 use Plenty\Plugin\Application;
 
-class IdealoDE extends FiltersForElasticSearchContract
+class IdealoDE extends FiltersForElasticSearch
 {
     /**
      * @var Application $app
