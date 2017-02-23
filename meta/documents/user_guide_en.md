@@ -13,4 +13,4 @@ Follow the instructions given on the [Exporting data](https://www.plentymarkets.
 
 ## License
 
-This project is licensed under the GNU AFFERO GENERAL PUBLIC LICENSE.- find further information in the [LICENSE.md](../LICENSE.md).
+This project is licensed under the GNU AFFERO GENERAL PUBLIC LICENSE.- find further information in the [LICENSE.md](../../../LICENSE.md).
