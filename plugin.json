@@ -19,6 +19,6 @@
   "version": "1.0.0",
   "require":
   {
-    "ElasticExport": 0.1
+    "ElasticExport": "0.1"
   }
 }
