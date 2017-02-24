@@ -9,6 +9,8 @@ Items are sold on the market idealo.de. For further information about this marke
 
 ## Setting up the data format IdealoDE-Plugin in plentymarkets
 
+To use this format, you need the Elastic Export plugin.
+
 Follow the instructions given on the [Exporting data](https://www.plentymarkets.co.uk/manual/data-exchange/exporting-data/#4) page of the manual to set up idealo.de in plentymarkets.
 
 ## License
