@@ -151,11 +151,15 @@ class IdealoDE extends ResultFields
             ],
 
             [
-                $imageMutator,
                 $languageMutator,
                 $skuMutator
             ],
         ];
+
+        if($reference != -1)
+        {
+            $fields[1][] = $imageMutator;
+        }
 
         foreach($itemDescriptionFields as $itemDescriptionField)
         {
