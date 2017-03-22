@@ -91,6 +91,7 @@ class IdealoDE extends CSVPluginGenerator
     protected function generatePluginContent($resultList, array $formatSettings = [], array $filter = [])
     {
         $this->elasticExportHelper = pluginApp(ElasticExportCoreHelper::class);
+
         if(is_array($resultList['documents']) && count($resultList['documents']) > 0)
         {
             $settings = $this->arrayHelper->buildMapFromObjectList($formatSettings, 'key', 'value');
@@ -101,6 +102,7 @@ class IdealoDE extends CSVPluginGenerator
 
             //Create a List with all VariationIds
             $variationIdList = array();
+
             foreach($resultList['documents'] as $variation)
             {
                 $variationIdList[] = $variation['id'];
@@ -119,7 +121,14 @@ class IdealoDE extends CSVPluginGenerator
             //Creates an array with the variationId as key to surpass the sorting problem
             if(isset($idlResultList) && $idlResultList instanceof RecordList)
             {
-                $this->createIdlArray($idlResultList);
+            	try
+				{
+					$this->createIdlArray($idlResultList);
+				}
+				catch(\Exception $exception)
+				{
+					$this->getLogger(__METHOD__)->error('itemDataLayerError', $exception->getMessage());
+				}
             }
 
             // Initiate the variables needed for grouping variations
@@ -242,6 +251,7 @@ class IdealoDE extends CSVPluginGenerator
                 }
             }
         }
+
         /**
          * If nothing is checked at the elastic export settings regarding the shipping cost type,
          * all payment methods within both default shipping configurations will be taken as available payment methods.
@@ -280,6 +290,7 @@ class IdealoDE extends CSVPluginGenerator
                 }
             }
         }
+
         if(count($this->usedPaymentMethods) <= 0 || $settings->get('shippingCostType') == self::SHIPPING_COST_TYPE_FLAT)
         {
             $data[] = self::DEFAULT_PAYMENT_METHOD;
@@ -305,7 +316,7 @@ class IdealoDE extends CSVPluginGenerator
 
 				if(strlen($attributes) <= 0 && count($items) > 1)
 				{
-					break;
+					continue;
 				}
 
 				$this->buildRow($settings, $item);
@@ -321,7 +332,7 @@ class IdealoDE extends CSVPluginGenerator
 	 * Creates the item row and prints it into the CSV file.
 	 *
 	 * @param KeyValue $settings
-	 * @param $item
+	 * @param array $item
 	 */
     private function buildRow(KeyValue $settings, $item)
 	{
@@ -336,44 +347,8 @@ class IdealoDE extends CSVPluginGenerator
 		// get variation name
 		$variationName = $this->elasticExportHelper->getAttributeValueSetShortFrontendName($item, $settings);
 
-		// get stock
-		if($item['data']['variation']['stockLimitation'] == 2)
-		{
-			$stock = 999;
-		}
-		elseif($item['data']['variation']['stockLimitation'] == 1 && $this->idlVariations[$item['id']]['variationStock.stockNet'] > 0)
-		{
-			if($this->idlVariations[$item['id']]['variationStock.stockNet'] > 999)
-			{
-				$stock = 999;
-			}
-			else
-			{
-				$stock = $this->idlVariations[$item['id']]['variationStock.stockNet'];
-			}
-		}
-		elseif($item['data']['variation']['stockLimitation'] == 0)
-		{
-			if($this->idlVariations[$item['id']]['variationStock.stockNet'] > 999)
-			{
-				$stock = 999;
-			}
-			else
-			{
-				if($this->idlVariations[$item['id']]['variationStock.stockNet'] > 0)
-				{
-					$stock = $this->idlVariations[$item['id']]['variationStock.stockNet'];
-				}
-				else
-				{
-					$stock = 0;
-				}
-			}
-		}
-		else
-		{
-			$stock = 0;
-		}
+		// calculate stock
+		$stock = $this->getStock($item);
 
 		$checkoutApproved = $this->getProperty($item, 'CheckoutApproved');
 
@@ -664,4 +639,54 @@ class IdealoDE extends CSVPluginGenerator
             }
         }
     }
+
+	/**
+	 * Calculates the stock based depending on different limits.
+	 *
+	 * @param array $item
+	 * @return int
+	 */
+    private function getStock($item)
+	{
+		// get stock
+		if($item['data']['variation']['stockLimitation'] == 2)
+		{
+			$stock = 999;
+		}
+		elseif($item['data']['variation']['stockLimitation'] == 1 && $this->idlVariations[$item['id']]['variationStock.stockNet'] > 0)
+		{
+			if($this->idlVariations[$item['id']]['variationStock.stockNet'] > 999)
+			{
+				$stock = 999;
+			}
+			else
+			{
+				$stock = $this->idlVariations[$item['id']]['variationStock.stockNet'];
+			}
+		}
+		elseif($item['data']['variation']['stockLimitation'] == 0)
+		{
+			if($this->idlVariations[$item['id']]['variationStock.stockNet'] > 999)
+			{
+				$stock = 999;
+			}
+			else
+			{
+				if($this->idlVariations[$item['id']]['variationStock.stockNet'] > 0)
+				{
+					$stock = $this->idlVariations[$item['id']]['variationStock.stockNet'];
+				}
+				else
+				{
+					$stock = 0;
+				}
+			}
+		}
+		else
+		{
+			$stock = 0;
+		}
+
+		return $stock;
+	}
 }
