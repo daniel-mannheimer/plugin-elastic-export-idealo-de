@@ -316,6 +316,11 @@ class IdealoDE extends CSVPluginGenerator
 
 				if(strlen($attributes) <= 0 && count($items) > 1)
 				{
+					$this->getLogger(__METHOD__)
+						->setReferenceType('variationId')
+						->setReferenceValue($item['data']['variation']['id'])
+						->info('ElasticExportIdealoDE::item.itemMainVariationAttributeNameError');
+
 					continue;
 				}
 
@@ -390,7 +395,6 @@ class IdealoDE extends CSVPluginGenerator
 			'base_price' 		=> $this->elasticExportHelper->getBasePrice($item, $this->idlVariations[$item['id']]),
 			'free_text_field'   => $this->getFreeText($this->idlVariations[$item['id']]),
 			'checkoutApproved'	=> $checkoutApproved,
-
 		];
 
 		/**
