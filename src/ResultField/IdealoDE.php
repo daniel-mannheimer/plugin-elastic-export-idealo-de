@@ -79,7 +79,7 @@ class IdealoDE extends ResultFields
         $imageMutator = pluginApp(ImageMutator::class);
         if($imageMutator instanceof ImageMutator)
         {
-            $imageMutator->addMarket($reference);
+            $imageMutator->addMarket((int)$reference);
         }
         /**
          * @var LanguageMutator $languageMutator
@@ -121,12 +121,17 @@ class IdealoDE extends ResultFields
                 'variation.weightG',
 
                 //images
-                'images.item.fileType',
-                'images.item.type',
+                'images.item.urlMiddle',
+                'images.item.urlPreview',
+                'images.item.urlSecondPreview',
+                'images.item.url',
                 'images.item.path',
                 'images.item.position',
-                'images.variation.fileType',
-                'images.variation.type',
+
+                'images.variation.urlMiddle',
+                'images.variation.urlPreview',
+                'images.variation.urlSecondPreview',
+                'images.variation.url',
                 'images.variation.path',
                 'images.variation.position',
 
