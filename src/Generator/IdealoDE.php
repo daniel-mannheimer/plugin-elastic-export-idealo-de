@@ -305,7 +305,7 @@ class IdealoDE extends CSVPluginGenerator
 
 				if(strlen($attributes) <= 0 && count($items) > 1)
 				{
-					return;
+					break;
 				}
 
 				$this->buildRow($settings, $item);
