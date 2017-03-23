@@ -13,6 +13,7 @@ use Plenty\Modules\Order\Shipping\Models\DefaultShipping;
 use Plenty\Modules\Order\Payment\Method\Models\PaymentMethod;
 use Plenty\Modules\Item\Property\Contracts\PropertySelectionRepositoryContract;
 use Plenty\Modules\Item\Property\Models\PropertySelection;
+use Plenty\Plugin\Log\Loggable;
 
 /**
  * Class IdealoDE
@@ -20,6 +21,8 @@ use Plenty\Modules\Item\Property\Models\PropertySelection;
  */
 class IdealoDE extends CSVPluginGenerator
 {
+	use Loggable;
+
     const IDEALO_DE = 121.00;
     const IDEALO_CHECKOUT = 121.02;
 
@@ -88,6 +91,7 @@ class IdealoDE extends CSVPluginGenerator
     protected function generatePluginContent($resultList, array $formatSettings = [], array $filter = [])
     {
         $this->elasticExportHelper = pluginApp(ElasticExportCoreHelper::class);
+
         if(is_array($resultList['documents']) && count($resultList['documents']) > 0)
         {
             $settings = $this->arrayHelper->buildMapFromObjectList($formatSettings, 'key', 'value');
@@ -98,8 +102,23 @@ class IdealoDE extends CSVPluginGenerator
 
             //Create a List with all VariationIds
             $variationIdList = array();
-            foreach($resultList['documents'] as $variation)
+
+            foreach($resultList['documents'] as $key => $variation)
             {
+				$attributes = $this->elasticExportHelper->getAttributeValueSetShortFrontendName($variation, $settings, '|');
+
+				// skip main variations without attributes
+				if(strlen($attributes) <= 0)
+				{
+					$this->getLogger(__METHOD__)
+						->setReferenceType('variationId')
+						->setReferenceValue($variation['data']['variation']['id'])
+						->info('ElasticExportIdealoDE::item.itemMainVariationAttributeNameError');
+
+					unset($resultList['documents'][$key]);
+					continue;
+				}
+
                 $variationIdList[] = $variation['id'];
             }
 
@@ -116,7 +135,14 @@ class IdealoDE extends CSVPluginGenerator
             //Creates an array with the variationId as key to surpass the sorting problem
             if(isset($idlResultList) && $idlResultList instanceof RecordList)
             {
-                $this->createIdlArray($idlResultList);
+            	try
+				{
+					$this->createIdlArray($idlResultList);
+				}
+				catch(\Exception $exception)
+				{
+					$this->getLogger(__METHOD__)->error('itemDataLayerError', $exception->getMessage());
+				}
             }
 
             // Initiate the variables needed for grouping variations
@@ -131,6 +157,7 @@ class IdealoDE extends CSVPluginGenerator
                 {
                     continue;
                 }
+
                 // Check if it's the first item from the resultList
                 if ($currentItemId === null)
                 {
@@ -145,8 +172,9 @@ class IdealoDE extends CSVPluginGenerator
                 }
                 else
                 {
+					$this->constructData($settings, $variations);
+
                     // Pass the items to the CSV printer
-                    $this->row($settings, $variations);
                     $variations = array();
                     $variations[] = $variation;
                     $previousItemId = $variation['data']['item']['id'];
@@ -156,7 +184,7 @@ class IdealoDE extends CSVPluginGenerator
             // Write the last batch of variations
             if (is_array($variations) && count($variations) > 0)
             {
-                $this->row($settings, $variations);
+                $this->constructData($settings, $variations);
             }
         }
     }
@@ -238,6 +266,7 @@ class IdealoDE extends CSVPluginGenerator
                 }
             }
         }
+
         /**
          * If nothing is checked at the elastic export settings regarding the shipping cost type,
          * all payment methods within both default shipping configurations will be taken as available payment methods.
@@ -276,6 +305,7 @@ class IdealoDE extends CSVPluginGenerator
                 }
             }
         }
+
         if(count($this->usedPaymentMethods) <= 0 || $settings->get('shippingCostType') == self::SHIPPING_COST_TYPE_FLAT)
         {
             $data[] = self::DEFAULT_PAYMENT_METHOD;
@@ -288,217 +318,191 @@ class IdealoDE extends CSVPluginGenerator
      * Creates the item row and prints it into the CSV file.
      *
      * @param KeyValue $settings
-     * @param array $items
+     * @param array $variationGroup
      */
-    private function row(KeyValue $settings, $items)
+    private function constructData(KeyValue $settings, $variationGroup)
     {
-        foreach($items as $item)
+        foreach($variationGroup as $variation)
         {
-            // don't print an item into the csv if it's a main variation without attributes
-            $attributes = $this->elasticExportHelper->getAttributeValueSetShortFrontendName($item, $settings, '|');
-            if(strlen($attributes) <= 0 && count($items) > 1)
-            {
-                continue;
-            }
-
-            // get price and rrp
-            $price = $this->idlVariations[$item['id']]['variationRetailPrice.price'];
-            $rrp = $this->elasticExportHelper->getRecommendedRetailPrice($this->idlVariations[$item['id']]['variationRecommendedRetailPrice.price'], $settings);
-
-            // compare price and rrp
-            $price = $price <= 0 ? $rrp : $price;
-            $rrp = $rrp <= $price ? 0 : $rrp;
-
-            // get variation name
-            $variationName = $this->elasticExportHelper->getAttributeValueSetShortFrontendName($item, $settings);
-
-            // get stock
-            if($item['data']['variation']['stockLimitation'] == 2)
-            {
-                $stock = 999;
-            }
-            elseif($item['data']['variation']['stockLimitation'] == 1 && $this->idlVariations[$item['id']]['variationStock.stockNet'] > 0)
-            {
-                if($this->idlVariations[$item['id']]['variationStock.stockNet'] > 999)
-                {
-                    $stock = 999;
-                }
-                else
-                {
-                    $stock = $this->idlVariations[$item['id']]['variationStock.stockNet'];
-                }
-            }
-            elseif($item['data']['variation']['stockLimitation'] == 0)
-            {
-                if($this->idlVariations[$item['id']]['variationStock.stockNet'] > 999)
-                {
-                    $stock = 999;
-                }
-                else
-                {
-                    if($this->idlVariations[$item['id']]['variationStock.stockNet'] > 0)
-                    {
-                        $stock = $this->idlVariations[$item['id']]['variationStock.stockNet'];
-                    }
-                    else
-                    {
-                        $stock = 0;
-                    }
-                }
-            }
-            else
-            {
-                $stock = 0;
-            }
-
-            $checkoutApproved = $this->getProperty($item, 'CheckoutApproved');
-
-            if(is_null($checkoutApproved) || strlen($checkoutApproved) <= 0)
-            {
-                $checkoutApproved = 'false';
-            }
-            else
-            {
-                $checkoutApproved = 'true';
-            }
-
-            $data = [
-                'article_id' 		=> '',
-                'deeplink' 			=> $this->elasticExportHelper->getUrl($item, $settings, true, false),
-                'name' 				=> $this->elasticExportHelper->getName($item, $settings) . (strlen($variationName) ? ' ' . $variationName : ''),
-                'short_description' => $this->elasticExportHelper->getPreviewText($item, $settings),
-                'description' 		=> $this->elasticExportHelper->getDescription($item, $settings),
-                'article_no' 		=> $this->idlVariations[$item['id']]['variationBase.customNumber'],
-                'producer' 			=> $this->elasticExportHelper->getExternalManufacturerName((int)$item['data']['item']['manufacturer']['id']),
-                'model' 			=> $item['data']['variation']['model'],
-                'availability' 		=> $this->elasticExportHelper->getAvailability($item, $settings),
-                'ean'	 			=> $this->elasticExportHelper->getBarcodeByType($item, $settings->get('barcode')),
-                'isbn' 				=> $this->elasticExportHelper->getBarcodeByType($item, ElasticExportCoreHelper::BARCODE_ISBN),
-                'fedas' 			=> $item['data']['item']['amazonFedas'],
-                'warranty' 			=> '',
-                'price' 			=> number_format((float)$price, 2, '.', ''),
-                'price_old' 		=> number_format((float)$rrp, 2, '.', ''),
-                'weight' 			=> $item['data']['variation']['weightG'],
-                'category1' 		=> $this->elasticExportHelper->getCategoryBranch((int)$item['data']['defaultCategories'][0]['id'], $settings, 1),
-                'category2' 		=> $this->elasticExportHelper->getCategoryBranch((int)$item['data']['defaultCategories'][0]['id'], $settings, 2),
-                'category3' 		=> $this->elasticExportHelper->getCategoryBranch((int)$item['data']['defaultCategories'][0]['id'], $settings, 3),
-                'category4' 		=> $this->elasticExportHelper->getCategoryBranch((int)$item['data']['defaultCategories'][0]['id'], $settings, 4),
-                'category5' 		=> $this->elasticExportHelper->getCategoryBranch((int)$item['data']['defaultCategories'][0]['id'], $settings, 5),
-                'category6' 		=> $this->elasticExportHelper->getCategoryBranch((int)$item['data']['defaultCategories'][0]['id'], $settings, 6),
-                'category_concat' 	=> $this->elasticExportHelper->getCategory((int)$item['data']['defaultCategories'][0]['id'], $settings->get('lang'), $settings->get('plentyId')),
-                'image_url_preview' => $this->elasticExportHelper->getMainImage($item, $settings, 'preview'),
-                'image_url' 		=> $this->elasticExportHelper->getMainImage($item, $settings, 'normal'),
-                'base_price' 		=> $this->elasticExportHelper->getBasePrice($item, $this->idlVariations[$item['id']]),
-                'free_text_field'   => $this->getFreeText($this->idlVariations[$item['id']]),
-                'checkoutApproved'	=> $checkoutApproved,
-
-            ];
-
-            /**
-             * if the article is available for idealo DK further fields will be set depending on the properties of the article.
-             *
-             * Be sure to set the price in twoManHandlingPrice and disposalPrice with a dot instead of a comma for idealo DK
-             * will only except it that way.
-             *
-             * The properties twoManHandlingPrice and disposalPrice will also only be set if the property fulfillmentType is 'Spedition'
-             * otherwise these two properties will be ignored.
-             */
-            if($checkoutApproved == 'true')
-            {
-                $data['article_id'] = $this->elasticExportHelper->generateSku($item['id'], self::IDEALO_CHECKOUT, 0, (string)$this->filterAndGetVariationSku($item));
-                $data['itemsInStock'] = $stock;
-                $fulfillmentType = $this->getProperty($item, 'FulfillmentType:Spedition');
-
-                if(!is_null($fulfillmentType) || strlen($fulfillmentType) > 0)
-                {
-                    $fulfillmentType = 'Spedition';
-                }
-                else
-                {
-                    $full = $this->getProperty($item, 'FulfillmentType:Paketdienst');
-                    $fulfillmentType = is_null($full) || strlen($full) <= 0 ? '' : 'Paketdienst';
-                }
-
-                $data['fulfillmentType'] = $fulfillmentType;
-
-                if($data['fulfillmentType'] == 'Spedition')
-                {
-                    $twoManHandling = $this->getProperty($item, 'TwoManHandlingPrice');
-                    $twoManHandling = str_replace(",", '.', $twoManHandling);
-                    $twoManHandling = number_format((float)$twoManHandling, 2, ',', '');
-                    $disposal = $this->getProperty($item, 'DisposalPrice');
-                    $disposal = str_replace(",", '.', $disposal);
-                    $disposal = number_format((float)$disposal, 2, ',', '');
-
-                    $twoManHandling > 0 ?
-                        $data['twoManHandlingPrice'] = $twoManHandling : $data['twoManHandlingPrice'] = '';
-
-                    if($twoManHandling > 0)
-                    {
-                        $disposal > 0 ?
-                            $data['disposalPrice'] = $disposal : $data['disposalPrice'] = '';
-                    }
-                    else
-                    {
-                        $data['disposalPrice'] = '';
-                    }
-                }
-                else
-                {
-                    $data['twoManHandlingPrice'] = '';
-                    $data['disposalPrice'] = '';
-                }
-            }
-            else
-            {
-                $data['article_id'] = $this->elasticExportHelper->generateSku($item['id'], self::IDEALO_DE, 0, (string)$this->filterAndGetVariationSku($item));
-                $data['itemsInStock'] = '';
-                $data['fulfillmentType'] = '';
-                $data['twoManHandlingPrice'] = '';
-                $data['disposalPrice'] = '';
-            }
-
-            if(count($this->usedPaymentMethods) == 1)
-            {
-                foreach($this->usedPaymentMethods as $paymentMethod)
-                {
-                    foreach($paymentMethod as $method)
-                    {
-                        $name = $method->getAttributes()['name'];
-                        $cost = $this->elasticExportHelper->getShippingCost($item, $settings, $method->id);
-                        $data[$name] = number_format((float)$cost, 2, '.', '');
-                    }
-                }
-            }
-            elseif(count($this->usedPaymentMethods) > 1)
-            {
-                foreach($this->usedPaymentMethods as $defaultShipping => $paymentMethod)
-                {
-                    foreach ($paymentMethod as $method)
-                    {
-                        $name = $method->getAttributes()['name'];
-                        $cost = $this->elasticExportHelper->calculateShippingCost(
-                            $item['id'],
-                            $this->defaultShippingList[$defaultShipping]->shippingDestinationId,
-                            $this->defaultShippingList[$defaultShipping]->referrerId,
-                            $method->id);
-                        $data[$name] = number_format((float)$cost, 2, '.', '');
-                    }
-                }
-            }
-            elseif(count($this->usedPaymentMethods) <= 0 && $settings->get('shippingCostType') == self::SHIPPING_COST_TYPE_FLAT)
-            {
-                $data[self::DEFAULT_PAYMENT_METHOD] = $settings->get('shippingCostFlat');
-            }
-            else
-            {
-                $data[self::DEFAULT_PAYMENT_METHOD] = 0.00;
-            }
-
-            // Get the values and print them in the CSV file
-            $this->addCSVContent(array_values($data));
-        }
+			try
+			{
+				$this->buildRow($settings, $variation);
+			}
+			catch(\Exception $exception)
+			{
+				$this->getLogger(__METHOD__)->error('ElasticExportIdealoDE::item.itemExportError', $exception->getMessage());
+			}
+		}
     }
+
+	/**
+	 * Creates the item row and prints it into the CSV file.
+	 *
+	 * @param KeyValue $settings
+	 * @param array $item
+	 */
+    private function buildRow(KeyValue $settings, $item)
+	{
+		// get price and rrp
+		$price = $this->idlVariations[$item['id']]['variationRetailPrice.price'];
+		$rrp = $this->elasticExportHelper->getRecommendedRetailPrice($this->idlVariations[$item['id']]['variationRecommendedRetailPrice.price'], $settings);
+
+		// compare price and rrp
+		$price = $price <= 0 ? $rrp : $price;
+		$rrp = $rrp <= $price ? 0 : $rrp;
+
+		// get variation name
+		$variationName = $this->elasticExportHelper->getAttributeValueSetShortFrontendName($item, $settings);
+
+		// calculate stock
+		$stock = $this->getStock($item);
+
+		$checkoutApproved = $this->getProperty($item, 'CheckoutApproved');
+
+		if(is_null($checkoutApproved) || strlen($checkoutApproved) <= 0)
+		{
+			$checkoutApproved = 'false';
+		}
+		else
+		{
+			$checkoutApproved = 'true';
+		}
+
+		$data = [
+			'article_id' 		=> '',
+			'deeplink' 			=> $this->elasticExportHelper->getUrl($item, $settings, true, false),
+			'name' 				=> $this->elasticExportHelper->getName($item, $settings) . (strlen($variationName) ? ' ' . $variationName : ''),
+			'short_description' => $this->elasticExportHelper->getPreviewText($item, $settings),
+			'description' 		=> $this->elasticExportHelper->getDescription($item, $settings),
+			'article_no' 		=> $this->idlVariations[$item['id']]['variationBase.customNumber'],
+			'producer' 			=> $this->elasticExportHelper->getExternalManufacturerName((int)$item['data']['item']['manufacturer']['id']),
+			'model' 			=> $item['data']['variation']['model'],
+			'availability' 		=> $this->elasticExportHelper->getAvailability($item, $settings),
+			'ean'	 			=> $this->elasticExportHelper->getBarcodeByType($item, $settings->get('barcode')),
+			'isbn' 				=> $this->elasticExportHelper->getBarcodeByType($item, ElasticExportCoreHelper::BARCODE_ISBN),
+			'fedas' 			=> $item['data']['item']['amazonFedas'],
+			'warranty' 			=> '',
+			'price' 			=> number_format((float)$price, 2, '.', ''),
+			'price_old' 		=> number_format((float)$rrp, 2, '.', ''),
+			'weight' 			=> $item['data']['variation']['weightG'],
+			'category1' 		=> $this->elasticExportHelper->getCategoryBranch((int)$item['data']['defaultCategories'][0]['id'], $settings, 1),
+			'category2' 		=> $this->elasticExportHelper->getCategoryBranch((int)$item['data']['defaultCategories'][0]['id'], $settings, 2),
+			'category3' 		=> $this->elasticExportHelper->getCategoryBranch((int)$item['data']['defaultCategories'][0]['id'], $settings, 3),
+			'category4' 		=> $this->elasticExportHelper->getCategoryBranch((int)$item['data']['defaultCategories'][0]['id'], $settings, 4),
+			'category5' 		=> $this->elasticExportHelper->getCategoryBranch((int)$item['data']['defaultCategories'][0]['id'], $settings, 5),
+			'category6' 		=> $this->elasticExportHelper->getCategoryBranch((int)$item['data']['defaultCategories'][0]['id'], $settings, 6),
+			'category_concat' 	=> $this->elasticExportHelper->getCategory((int)$item['data']['defaultCategories'][0]['id'], $settings->get('lang'), $settings->get('plentyId')),
+			'image_url_preview' => $this->elasticExportHelper->getMainImage($item, $settings, 'preview'),
+			'image_url' 		=> $this->elasticExportHelper->getMainImage($item, $settings, 'normal'),
+			'base_price' 		=> $this->elasticExportHelper->getBasePrice($item, $this->idlVariations[$item['id']]),
+			'free_text_field'   => $this->getFreeText($this->idlVariations[$item['id']]),
+			'checkoutApproved'	=> $checkoutApproved,
+		];
+
+		/**
+		 * if the article is available for idealo DK further fields will be set depending on the properties of the article.
+		 *
+		 * Be sure to set the price in twoManHandlingPrice and disposalPrice with a dot instead of a comma for idealo DK
+		 * will only except it that way.
+		 *
+		 * The properties twoManHandlingPrice and disposalPrice will also only be set if the property fulfillmentType is 'Spedition'
+		 * otherwise these two properties will be ignored.
+		 */
+		if($checkoutApproved == 'true')
+		{
+			$data['article_id'] = $this->elasticExportHelper->generateSku($item['id'], self::IDEALO_CHECKOUT, 0, (string)$this->filterAndGetVariationSku($item));
+			$data['itemsInStock'] = $stock;
+			$fulfillmentType = $this->getProperty($item, 'FulfillmentType:Spedition');
+
+			if(!is_null($fulfillmentType) || strlen($fulfillmentType) > 0)
+			{
+				$fulfillmentType = 'Spedition';
+			}
+			else
+			{
+				$full = $this->getProperty($item, 'FulfillmentType:Paketdienst');
+				$fulfillmentType = is_null($full) || strlen($full) <= 0 ? '' : 'Paketdienst';
+			}
+
+			$data['fulfillmentType'] = $fulfillmentType;
+
+			if($data['fulfillmentType'] == 'Spedition')
+			{
+				$twoManHandling = $this->getProperty($item, 'TwoManHandlingPrice');
+				$twoManHandling = str_replace(",", '.', $twoManHandling);
+				$twoManHandling = number_format((float)$twoManHandling, 2, ',', '');
+				$disposal = $this->getProperty($item, 'DisposalPrice');
+				$disposal = str_replace(",", '.', $disposal);
+				$disposal = number_format((float)$disposal, 2, ',', '');
+
+				$twoManHandling > 0 ?
+					$data['twoManHandlingPrice'] = $twoManHandling : $data['twoManHandlingPrice'] = '';
+
+				if($twoManHandling > 0)
+				{
+					$disposal > 0 ?
+						$data['disposalPrice'] = $disposal : $data['disposalPrice'] = '';
+				}
+				else
+				{
+					$data['disposalPrice'] = '';
+				}
+			}
+			else
+			{
+				$data['twoManHandlingPrice'] = '';
+				$data['disposalPrice'] = '';
+			}
+		}
+		else
+		{
+			$data['article_id'] = $this->elasticExportHelper->generateSku($item['id'], self::IDEALO_DE, 0, (string)$this->filterAndGetVariationSku($item));
+			$data['itemsInStock'] = '';
+			$data['fulfillmentType'] = '';
+			$data['twoManHandlingPrice'] = '';
+			$data['disposalPrice'] = '';
+		}
+
+		if(count($this->usedPaymentMethods) == 1)
+		{
+			foreach($this->usedPaymentMethods as $paymentMethod)
+			{
+				foreach($paymentMethod as $method)
+				{
+					$name = $method->getAttributes()['name'];
+					$cost = $this->elasticExportHelper->getShippingCost($item, $settings, $method->id);
+					$data[$name] = number_format((float)$cost, 2, '.', '');
+				}
+			}
+		}
+		elseif(count($this->usedPaymentMethods) > 1)
+		{
+			foreach($this->usedPaymentMethods as $defaultShipping => $paymentMethod)
+			{
+				foreach ($paymentMethod as $method)
+				{
+					$name = $method->getAttributes()['name'];
+					$cost = $this->elasticExportHelper->calculateShippingCost(
+						$item['id'],
+						$this->defaultShippingList[$defaultShipping]->shippingDestinationId,
+						$this->defaultShippingList[$defaultShipping]->referrerId,
+						$method->id);
+					$data[$name] = number_format((float)$cost, 2, '.', '');
+				}
+			}
+		}
+		elseif(count($this->usedPaymentMethods) <= 0 && $settings->get('shippingCostType') == self::SHIPPING_COST_TYPE_FLAT)
+		{
+			$data[self::DEFAULT_PAYMENT_METHOD] = $settings->get('shippingCostFlat');
+		}
+		else
+		{
+			$data[self::DEFAULT_PAYMENT_METHOD] = 0.00;
+		}
+
+		// Get the values and print them in the CSV file
+		$this->addCSVContent(array_values($data));
+	}
 
     /**
      * Get free text.
@@ -641,4 +645,54 @@ class IdealoDE extends CSVPluginGenerator
             }
         }
     }
+
+	/**
+	 * Calculates the stock based depending on different limits.
+	 *
+	 * @param array $item
+	 * @return int
+	 */
+    private function getStock($item)
+	{
+		// get stock
+		if($item['data']['variation']['stockLimitation'] == 2)
+		{
+			$stock = 999;
+		}
+		elseif($item['data']['variation']['stockLimitation'] == 1 && $this->idlVariations[$item['id']]['variationStock.stockNet'] > 0)
+		{
+			if($this->idlVariations[$item['id']]['variationStock.stockNet'] > 999)
+			{
+				$stock = 999;
+			}
+			else
+			{
+				$stock = $this->idlVariations[$item['id']]['variationStock.stockNet'];
+			}
+		}
+		elseif($item['data']['variation']['stockLimitation'] == 0)
+		{
+			if($this->idlVariations[$item['id']]['variationStock.stockNet'] > 999)
+			{
+				$stock = 999;
+			}
+			else
+			{
+				if($this->idlVariations[$item['id']]['variationStock.stockNet'] > 0)
+				{
+					$stock = $this->idlVariations[$item['id']]['variationStock.stockNet'];
+				}
+				else
+				{
+					$stock = 0;
+				}
+			}
+		}
+		else
+		{
+			$stock = 0;
+		}
+
+		return $stock;
+	}
 }

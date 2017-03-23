@@ -1,9 +1,17 @@
 # Release Notes für Elastic Export idealo.de
 
+## v1.0.4 (2017-03-22)
+
+### Hinzugefügt
+- Logs
+
+### Geändert
+- Der Prozess wurde an einigen Stellen angepasst, um die Performance zu erhöhen.
+
 ## v1.0.3 (2017-03-22)
 
 ### Behoben
-- Es wird nun ein anderes Feld genutzt um die Bild-URLs auszulesen für Plugins die elastic search benutzen.
+- Es wird nun ein anderes Feld genutzt für Plugins die elastic search benutzen, um die Bild-URLs auszulesen.
 
 ## v1.0.2 (2017-03-13)
 
