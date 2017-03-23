@@ -5,6 +5,9 @@
 ### Added
 - Logs
 
+### Changed
+- The process was changed at some positions to increase the performance.
+
 ## v1.0.3 (2017-03-22)
 
 ### Fixed
