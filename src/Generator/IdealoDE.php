@@ -103,8 +103,22 @@ class IdealoDE extends CSVPluginGenerator
             //Create a List with all VariationIds
             $variationIdList = array();
 
-            foreach($resultList['documents'] as $variation)
+            foreach($resultList['documents'] as $key => $variation)
             {
+				$attributes = $this->elasticExportHelper->getAttributeValueSetShortFrontendName($variation, $settings, '|');
+
+				// skip main variations without attributes
+				if(strlen($attributes) <= 0)
+				{
+					$this->getLogger(__METHOD__)
+						->setReferenceType('variationId')
+						->setReferenceValue($variation['data']['variation']['id'])
+						->info('ElasticExportIdealoDE::item.itemMainVariationAttributeNameError');
+
+					unset($resultList['documents'][$key]);
+					continue;
+				}
+
                 $variationIdList[] = $variation['id'];
             }
 
@@ -143,6 +157,7 @@ class IdealoDE extends CSVPluginGenerator
                 {
                     continue;
                 }
+
                 // Check if it's the first item from the resultList
                 if ($currentItemId === null)
                 {
@@ -303,28 +318,15 @@ class IdealoDE extends CSVPluginGenerator
      * Creates the item row and prints it into the CSV file.
      *
      * @param KeyValue $settings
-     * @param array $items
+     * @param array $variationGroup
      */
-    private function constructData(KeyValue $settings, $items)
+    private function constructData(KeyValue $settings, $variationGroup)
     {
-        foreach($items as $item)
+        foreach($variationGroup as $variation)
         {
 			try
 			{
-				// don't print an item into the csv if it's a main variation without attributes
-				$attributes = $this->elasticExportHelper->getAttributeValueSetShortFrontendName($item, $settings, '|');
-
-				if(strlen($attributes) <= 0 && count($items) > 1)
-				{
-					$this->getLogger(__METHOD__)
-						->setReferenceType('variationId')
-						->setReferenceValue($item['data']['variation']['id'])
-						->info('ElasticExportIdealoDE::item.itemMainVariationAttributeNameError');
-
-					continue;
-				}
-
-				$this->buildRow($settings, $item);
+				$this->buildRow($settings, $variation);
 			}
 			catch(\Exception $exception)
 			{
