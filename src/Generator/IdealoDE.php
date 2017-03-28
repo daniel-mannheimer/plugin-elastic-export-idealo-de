@@ -2,7 +2,6 @@
 
 namespace ElasticExportIdealoDE\Generator;
 
-use EbaySdk\Api\Fulfillment\Types\Payment;
 use ElasticExport\Helper\ElasticExportCoreHelper;
 use Plenty\Modules\DataExchange\Contracts\CSVPluginGenerator;
 use Plenty\Modules\Helper\Services\ArrayHelper;
