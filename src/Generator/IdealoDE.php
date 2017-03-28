@@ -111,9 +111,8 @@ class IdealoDE extends CSVPluginGenerator
 				if(strlen($attributes) <= 0)
 				{
 					$this->getLogger(__METHOD__)
-						->setReferenceType('variationId')
-						->setReferenceValue((string)$variation['data']['variation']['id'])
-						->info('ElasticExportIdealoDE::item.itemMainVariationAttributeNameError');
+						->info('ElasticExportIdealoDE::item.itemMainVariationAttributeNameError',
+							['variationId' => (string)$variation['data']['variation']['id']]);
 
 					unset($resultList['documents'][$key]);
 					continue;
