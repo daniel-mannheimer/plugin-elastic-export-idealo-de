@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export idealo.de
 
+## v1.0.5 (2017-03-28)
+
+### Changed
+- The process was changed at some positions to improve the stability.
+
 ## v1.0.4 (2017-03-22)
 
 ### Added
