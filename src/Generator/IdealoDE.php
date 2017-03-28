@@ -111,9 +111,8 @@ class IdealoDE extends CSVPluginGenerator
 				if(strlen($attributes) <= 0)
 				{
 					$this->getLogger(__METHOD__)
-						->setReferenceType('variationId')
-						->setReferenceValue($variation['data']['variation']['id'])
-						->info('ElasticExportIdealoDE::item.itemMainVariationAttributeNameError');
+						->info('ElasticExportIdealoDE::item.itemMainVariationAttributeNameError',
+							['variationId' => (string)$variation['data']['variation']['id']]);
 
 					unset($resultList['documents'][$key]);
 					continue;
@@ -125,11 +124,16 @@ class IdealoDE extends CSVPluginGenerator
             //Get the missing fields in ES from IDL(ItemDataLayer)
             if(is_array($variationIdList) && count($variationIdList) > 0)
             {
-                /**
-                 * @var \ElasticExportIdealoDE\IDL_ResultList\IdealoDE $idlResultList
-                 */
                 $idlResultList = pluginApp(\ElasticExportIdealoDE\IDL_ResultList\IdealoDE::class);
-                $idlResultList = $idlResultList->getResultList($variationIdList, $settings, $filter);
+
+                if($idlResultList instanceof \ElasticExportIdealoDE\IDL_ResultList\IdealoDE)
+				{
+					$idlResultList = $idlResultList->getResultList($variationIdList, $settings, $filter);
+				}
+				else
+				{
+					$this->getLogger(__METHOD__)->critical('ElasticExportIdealoDE::item.loadInstanceError', '\ElasticExportIdealoDE\IDL_ResultList\IdealoDE');
+				}
             }
 
             //Creates an array with the variationId as key to surpass the sorting problem
@@ -141,7 +145,7 @@ class IdealoDE extends CSVPluginGenerator
 				}
 				catch(\Exception $exception)
 				{
-					$this->getLogger(__METHOD__)->error('itemDataLayerError', $exception->getMessage());
+					$this->getLogger(__METHOD__)->error('ElasticExportIdealoDE::item.itemDataLayerError', $exception->getMessage());
 				}
             }
 
@@ -155,6 +159,7 @@ class IdealoDE extends CSVPluginGenerator
             {
                 if(!array_key_exists($variation['id'], $this->idlVariations))
                 {
+                	$this->getLogger(__METHOD__)->debug('ElasticExportIdealoDE::item.itemExportNotPartOfResult');
                     continue;
                 }
 
@@ -163,6 +168,7 @@ class IdealoDE extends CSVPluginGenerator
                 {
                     $previousItemId = $variation['data']['item']['id'];
                 }
+
                 $currentItemId = $variation['data']['item']['id'];
 
                 // Check if it's the same item and add it to the grouper
@@ -238,31 +244,48 @@ class IdealoDE extends CSVPluginGenerator
          */
         if($settings->get('shippingCostType') == self::SHIPPING_COST_TYPE_CONFIGURATION)
         {
+			/**
+			 * @var PaymentMethod[] $paymentMethods
+			 */
             $paymentMethods = $this->elasticExportHelper->getPaymentMethods($settings);
-
             $defaultShipping = $this->elasticExportHelper->getDefaultShipping($settings);
 
             if($defaultShipping instanceof DefaultShipping)
             {
                 foreach([$defaultShipping->paymentMethod2, $defaultShipping->paymentMethod3] as $paymentMethodId)
                 {
-                    if(count($this->usedPaymentMethods) == 0 && array_key_exists($paymentMethodId, $paymentMethods))
-                    {
-                        $data[] = $paymentMethods[$paymentMethodId]->getAttributes()['name'];
-                        $this->usedPaymentMethods[$defaultShipping->id][] = $paymentMethods[$paymentMethodId];
-                    }
-                    elseif(array_key_exists($paymentMethodId, $paymentMethods) && count($this->usedPaymentMethods) == 1
-                        && ($this->usedPaymentMethods[$defaultShipping->id][0]->getAttributes()['id'] != $paymentMethodId))
-                    {
-                        $data[] = $paymentMethods[$paymentMethodId]->getAttributes()['name'];
-                        $this->usedPaymentMethods[$defaultShipping->id][] = $paymentMethods[$paymentMethodId];
-                    }
-                    elseif(array_key_exists($paymentMethodId, $paymentMethods) && count($this->usedPaymentMethods) == 2
-                        && ($this->usedPaymentMethods[$defaultShipping->id][0]->getAttributes()['id'] != $paymentMethodId))
-                    {
-                        $data[] = $paymentMethods[$paymentMethodId]->getAttributes()['name'];
-                        $this->usedPaymentMethods[$defaultShipping->id][] = $paymentMethods[$paymentMethodId];
-                    }
+					if(array_key_exists($paymentMethodId, $paymentMethods))
+					{
+						$usedPaymentMethod = $this->usedPaymentMethods[$defaultShipping->id][0];
+
+						if($usedPaymentMethod instanceof PaymentMethod)
+						{
+							$usedPaymentMethodAttributes = $usedPaymentMethod->getAttributes();
+						}
+
+						/**
+						 * Three cases:
+						 */
+						if(	(count($this->usedPaymentMethods) == 0) ||
+
+							((count($this->usedPaymentMethods) == 1 || count($this->usedPaymentMethods) == 2)
+								&& isset($usedPaymentMethodAttributes['id']) && $usedPaymentMethodAttributes['id'] != $paymentMethodId)
+						)
+						{
+							$paymentMethod = $paymentMethods[$paymentMethodId];
+
+							if($paymentMethod instanceof PaymentMethod)
+							{
+								$paymentMethodAttributes = $paymentMethod->getAttributes();
+
+								if(is_array($paymentMethodAttributes) && isset($paymentMethodAttributes['name']))
+								{
+									$data[] = $paymentMethodAttributes['name'];
+									$this->usedPaymentMethods[$defaultShipping->id][] = $paymentMethods[$paymentMethodId];
+								}
+							}
+						}
+					}
                 }
             }
         }
@@ -273,8 +296,10 @@ class IdealoDE extends CSVPluginGenerator
          */
         elseif($settings->get('shippingCostType') == 1)
         {
+			/**
+			 * @var PaymentMethod[] $paymentMethods
+			 */
             $paymentMethods = $this->elasticExportHelper->getPaymentMethods($settings);
-
             $this->defaultShippingList = $this->elasticExportHelper->getDefaultShippingList();
 
             foreach($this->defaultShippingList as $defaultShipping)
@@ -283,22 +308,33 @@ class IdealoDE extends CSVPluginGenerator
                 {
                     foreach([$defaultShipping->paymentMethod2, $defaultShipping->paymentMethod3] as $paymentMethodId)
                     {
-                        if(count($this->usedPaymentMethods) == 0 && array_key_exists($paymentMethodId, $paymentMethods))
+                    	if(!array_key_exists($paymentMethodId, $paymentMethods) ||
+							!($paymentMethods[$paymentMethodId] instanceof PaymentMethod))
+						{
+							continue;
+						}
+
+						$paymentMethodAttributes = $paymentMethods[$paymentMethodId]->getAttributes();
+
+                        if((count($this->usedPaymentMethods) == 0))
                         {
-                            $data[] = $paymentMethods[$paymentMethodId]->getAttributes()['name'];
+                            $data[] = $paymentMethodAttributes['name'];
                             $this->usedPaymentMethods[$defaultShipping->id][] = $paymentMethods[$paymentMethodId];
                         }
-                        elseif(array_key_exists($paymentMethodId, $paymentMethods) && count($this->usedPaymentMethods) == 1
+                        elseif(count($this->usedPaymentMethods) == 1
                             && $this->usedPaymentMethods[1][0]->getAttributes()['id'] != $paymentMethodId)
                         {
-                            $data[] = $paymentMethods[$paymentMethodId]->getAttributes()['name'];
+                            $data[] = $paymentMethodAttributes['name'];
                             $this->usedPaymentMethods[$defaultShipping->id][] = $paymentMethods[$paymentMethodId];
                         }
+                        elseif($this->usedPaymentMethods[1][0] instanceof PaymentMethod
+							&& $this->usedPaymentMethods[2][0] instanceof PaymentMethod
 
-                        elseif(array_key_exists($paymentMethodId, $paymentMethods) && count($this->usedPaymentMethods) == 2
-                            && ($this->usedPaymentMethods[1][0]->getAttributes()['id'] != $paymentMethodId && $this->usedPaymentMethods[2][0]->getAttributes()['id'] != $paymentMethodId))
+							&& count($this->usedPaymentMethods) == 2
+                            && ($this->usedPaymentMethods[1][0]->getAttributes()['id'] != $paymentMethodId
+									&& $this->usedPaymentMethods[2][0]->getAttributes()['id'] != $paymentMethodId))
                         {
-                            $data[] = $paymentMethods[$paymentMethodId]->getAttributes()['name'];
+                            $data[] = $paymentMethodAttributes['name'];
                             $this->usedPaymentMethods[$defaultShipping->id][] = $paymentMethods[$paymentMethodId];
                         }
                     }
@@ -326,11 +362,15 @@ class IdealoDE extends CSVPluginGenerator
         {
 			try
 			{
+				$this->getLogger(__METHOD__)->debug('ElasticExportIdealoDE::item.itemExportConstructItem',
+													['variationId' => $variation['data']['variation']['id']]);
+
 				$this->buildRow($settings, $variation);
 			}
 			catch(\Exception $exception)
 			{
-				$this->getLogger(__METHOD__)->error('ElasticExportIdealoDE::item.itemExportError', $exception->getMessage());
+				$this->getLogger(__METHOD__)->error('ElasticExportIdealoDE::item.itemExportError',
+													$exception->getMessage());
 			}
 		}
     }
@@ -410,7 +450,16 @@ class IdealoDE extends CSVPluginGenerator
 		 */
 		if($checkoutApproved == 'true')
 		{
-			$data['article_id'] = $this->elasticExportHelper->generateSku($item['id'], self::IDEALO_CHECKOUT, 0, (string)$this->filterAndGetVariationSku($item));
+			if($item['data']['skus']['sku'] != null)
+			{
+				$sku = $item['data']['skus']['sku'];
+			}
+			else
+			{
+				$sku = $this->elasticExportHelper->generateSku($item['id'], self::IDEALO_CHECKOUT, 0, $item['data']['variation']['id']);
+			}
+
+			$data['article_id'] = $sku;
 			$data['itemsInStock'] = $stock;
 			$fulfillmentType = $this->getProperty($item, 'FulfillmentType:Spedition');
 
@@ -435,13 +484,11 @@ class IdealoDE extends CSVPluginGenerator
 				$disposal = str_replace(",", '.', $disposal);
 				$disposal = number_format((float)$disposal, 2, ',', '');
 
-				$twoManHandling > 0 ?
-					$data['twoManHandlingPrice'] = $twoManHandling : $data['twoManHandlingPrice'] = '';
+				$twoManHandling > 0 ? $data['twoManHandlingPrice'] = $twoManHandling : $data['twoManHandlingPrice'] = '';
 
 				if($twoManHandling > 0)
 				{
-					$disposal > 0 ?
-						$data['disposalPrice'] = $disposal : $data['disposalPrice'] = '';
+					$disposal > 0 ? $data['disposalPrice'] = $disposal : $data['disposalPrice'] = '';
 				}
 				else
 				{
@@ -456,7 +503,16 @@ class IdealoDE extends CSVPluginGenerator
 		}
 		else
 		{
-			$data['article_id'] = $this->elasticExportHelper->generateSku($item['id'], self::IDEALO_DE, 0, (string)$this->filterAndGetVariationSku($item));
+			if($item['data']['skus']['sku'] != null)
+			{
+				$sku = $item['data']['skus']['sku'];
+			}
+			else
+			{
+				$sku = $this->elasticExportHelper->generateSku($item['id'], self::IDEALO_DE, 0, $item['data']['variation']['id']);
+			}
+
+			$data['article_id'] = $sku;
 			$data['itemsInStock'] = '';
 			$data['fulfillmentType'] = '';
 			$data['twoManHandlingPrice'] = '';
@@ -469,9 +525,21 @@ class IdealoDE extends CSVPluginGenerator
 			{
 				foreach($paymentMethod as $method)
 				{
-					$name = $method->getAttributes()['name'];
-					$cost = $this->elasticExportHelper->getShippingCost($item, $settings, $method->id);
-					$data[$name] = number_format((float)$cost, 2, '.', '');
+					if($method instanceof PaymentMethod)
+					{
+						$attributes = $method->getAttributes();
+
+						if(isset($attributes['name']))
+						{
+							$name = $attributes['name'];
+							$cost = $this->elasticExportHelper->getShippingCost($item['data']['item']['id'], $settings, $method->id);
+							$data[$name] = number_format((float)$cost, 2, '.', '');
+						}
+					}
+					else
+					{
+						$this->getLogger(__METHOD__)->error('ElasticExportIdealoDE::item.loadInstanceError', 'PaymentMethod');
+					}
 				}
 			}
 		}
@@ -481,13 +549,25 @@ class IdealoDE extends CSVPluginGenerator
 			{
 				foreach ($paymentMethod as $method)
 				{
-					$name = $method->getAttributes()['name'];
-					$cost = $this->elasticExportHelper->calculateShippingCost(
-						$item['id'],
-						$this->defaultShippingList[$defaultShipping]->shippingDestinationId,
-						$this->defaultShippingList[$defaultShipping]->referrerId,
-						$method->id);
-					$data[$name] = number_format((float)$cost, 2, '.', '');
+					if($method instanceof PaymentMethod)
+					{
+						$attributes = $method->getAttributes();
+
+						if(isset($attributes['name']))
+						{
+							$name = $method->getAttributes()['name'];
+							$cost = $this->elasticExportHelper->calculateShippingCost(
+								$item['id'],
+								$this->defaultShippingList[$defaultShipping]->shippingDestinationId,
+								$this->defaultShippingList[$defaultShipping]->referrerId,
+								$method->id);
+							$data[$name] = number_format((float)$cost, 2, '.', '');
+						}
+					}
+					else
+					{
+						$this->getLogger(__METHOD__)->error('ElasticExportIdealoDE::item.loadInstanceError', 'PaymentMethod');
+					}
 				}
 			}
 		}
@@ -563,59 +643,43 @@ class IdealoDE extends CSVPluginGenerator
      * @param   float $marketId
      * @return  array<string,string>
      */
-    private function getItemPropertyList($item, float $marketId):array
-    {
-        if(!array_key_exists($item['id'], $this->itemPropertyCache))
-        {
-            $characterMarketComponentList = $this->elasticExportHelper->getItemCharactersByComponent($this->idlVariations[$item['id']], $marketId);
+	private function getItemPropertyList($item, float $marketId):array
+	{
+		if(!array_key_exists($item['id'], $this->itemPropertyCache))
+		{
+			$characterMarketComponentList = $this->elasticExportHelper->getItemCharactersByComponent($this->idlVariations[$item['id']], $marketId);
 
-            $list = [];
+			$list = [];
 
-            if(count($characterMarketComponentList))
-            {
-                foreach($characterMarketComponentList as $data)
-                {
-                    if((string) $data['characterValueType'] != 'file')
-                    {
-                        if((string) $data['characterValueType'] == 'selection')
-                        {
-                            $propertySelection = $this->propertySelectionRepository->findOne((int) $data['characterValue'], 'de');
-                            if($propertySelection instanceof PropertySelection)
-                            {
-                                $list[(string) $data['externalComponent']] = (string) $propertySelection->name;
-                            }
-                        }
-                        else
-                        {
-                            $list[(string) $data['externalComponent']] = (string) $data['characterValue'];
-                        }
+			if(count($characterMarketComponentList))
+			{
+				foreach($characterMarketComponentList as $data)
+				{
+					if(isset($data['characterValueType']) && (string)$data['characterValueType'] != 'file')
+					{
+						if(isset($data['characterValueType']) && (string)$data['characterValueType'] == 'selection')
+						{
+							$propertySelection = $this->propertySelectionRepository->findOne((int) $data['characterValue'], 'de');
 
-                    }
-                }
-            }
+							if($propertySelection instanceof PropertySelection)
+							{
+								$list[(string) $data['externalComponent']] = (string) $propertySelection->name;
+							}
+						}
+						else
+						{
+							$list[(string) $data['externalComponent']] = (string) $data['characterValue'];
+						}
 
-            $this->itemPropertyCache[$item['id']] = $list;
-        }
+					}
+				}
+			}
 
-        return $this->itemPropertyCache[$item['id']];
-    }
+			$this->itemPropertyCache[$item['id']] = $list;
+		}
 
-    /**
-     * Get the Variation Sku from the Skus array.
-     *
-     * @param array $item
-     * @return null|string
-     */
-    private function filterAndGetVariationSku($item)
-    {
-        // get the sku from the skus array
-        if (isset($item['data']['skus']) && count($item['data']['skus']) > 0)
-        {
-            return array_shift($item['data']['skus'])['sku'];
-        }
-
-        return null;
-    }
+		return $this->itemPropertyCache[$item['id']];
+	}
 
     /**
      * Creates an array with the rest of data needed from the ItemDataLayer.

@@ -98,12 +98,11 @@ class IdealoDE
             );
 
             $itemDataLayer = pluginApp(ItemDataLayerRepositoryContract::class);
-            /**
-             * @var ItemDataLayerRepositoryContract $itemDataLayer
-             */
-            $itemDataLayer = $itemDataLayer->search($resultFields, $searchFilter);
 
-            return $itemDataLayer;
+            if($itemDataLayer instanceof ItemDataLayerRepositoryContract)
+			{
+				return $itemDataLayer->search($resultFields, $searchFilter);
+			}
         }
 
         return '';
