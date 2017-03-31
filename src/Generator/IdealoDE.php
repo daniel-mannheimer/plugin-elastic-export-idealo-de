@@ -108,13 +108,13 @@ class IdealoDE extends CSVPluginGenerator
 				$attributes = $this->elasticExportHelper->getAttributeValueSetShortFrontendName($variation, $settings, '|');
 
 				// skip main variations without attributes
-				if(strlen($attributes) <= 0)
+				if(strlen($attributes) <= 0 && $variation['variation']['isMain'] === false)
 				{
 					$this->getLogger(__METHOD__)
-						->info('ElasticExportIdealoDE::item.itemMainVariationAttributeNameError',
-							['variationId' => (string)$variation['data']['variation']['id']]);
+                    ->info('ElasticExportIdealoDE::item.itemMainVariationAttributeNameError',
+                        ['variationId' => (string)$variation['data']['variation']['id']]);
 
-					unset($resultList['documents'][$key]);
+                    unset($resultList['documents'][$key]);
 					continue;
 				}
 

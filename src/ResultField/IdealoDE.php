@@ -2,11 +2,13 @@
 
 namespace ElasticExportIdealoDE\ResultField;
 
+use Cache\Util\Key;
 use Plenty\Modules\DataExchange\Contracts\ResultFields;
 use Plenty\Modules\DataExchange\Models\FormatSetting;
 use Plenty\Modules\Helper\Services\ArrayHelper;
 use Plenty\Modules\Item\Search\Mutators\ImageMutator;
 use Plenty\Modules\Cloud\ElasticSearch\Lib\Source\Mutator\BuiltIn\LanguageMutator;
+use Plenty\Modules\Item\Search\Mutators\KeyMutator;
 use Plenty\Modules\Item\Search\Mutators\SkuMutator;
 use Plenty\Modules\Item\Search\Mutators\DefaultCategoryMutator;
 
@@ -73,6 +75,16 @@ class IdealoDE extends ResultFields
         }
 
         // Mutators
+        /**
+         * @var KeyMutator $keyMutator
+         */
+        $keyMutator = pluginApp(KeyMutator::class);
+        if($keyMutator instanceof KeyMutator)
+        {
+            $keyMutator->setKeyList($this->getKeyList());
+            $keyMutator->setNestedKeyList($this->getNestedKeyList());
+        }
+
         /**
          * @var ImageMutator $imageMutator
          */
@@ -157,7 +169,9 @@ class IdealoDE extends ResultFields
 
             [
                 $languageMutator,
-                $skuMutator
+                $skuMutator,
+                $keyMutator,
+                $defaultCategoryMutator
             ],
         ];
 
@@ -173,6 +187,89 @@ class IdealoDE extends ResultFields
         }
 
         return $fields;
+    }
 
+    private function getKeyList()
+    {
+        $keyList = [
+            //item
+            'item.id',
+            'item.manufacturer.id',
+            'item.amazonFedas',
+
+            //variation
+            'id',
+            'variation.availability.id',
+            'variation.stockLimitation',
+            'variation.vatId',
+            'variation.model',
+            'variation.isMain',
+            'variation.weightG',
+
+            //unit
+            'unit.content',
+            'unit.id',
+        ];
+
+        return $keyList;
+    }
+
+    private function getNestedKeyList()
+    {
+        $nestedKeyList['keys'] = [
+            //images
+            'images.item' => [
+                'urlMiddle',
+                'urlPreview',
+                'urlSecondPreview',
+                'url',
+                'path',
+                'position',
+            ],
+            'images.variation' => [
+                'urlMiddle',
+                'urlPreview',
+                'urlSecondPreview',
+                'url',
+                'path',
+                'position',
+            ],
+
+            //sku
+            'skus' => [
+                'sku'
+            ],
+
+            //texts
+            'texts'  => [
+                'urlPath',
+                'name1',
+                'name2',
+                'name3',
+                'shortDescription',
+                'description',
+                'technicalData',
+            ],
+
+            //defaultCategories
+            'defaultCategories' => [
+                'id'
+            ],
+
+            //barcodes
+            'barcodes'  => [
+                'code',
+                'type',
+            ],
+
+            //attributes
+            'attributes'   => [
+                'attributeValueSetId',
+                'attributeId',
+                'valueId',
+                'names.name',
+                'names.lang',
+            ],
+        ];
     }
 }
