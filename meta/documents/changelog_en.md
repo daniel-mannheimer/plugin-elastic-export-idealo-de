@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export idealo.de
 
+## v1.0.6 (2017-03-30)
+
+### Added
+- Added a new mutator so we will prevent trying to get access to an array key which not exists.
+
 ## v1.0.5 (2017-03-28)
 
 ### Changed

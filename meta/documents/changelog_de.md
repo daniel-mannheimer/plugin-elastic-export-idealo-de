@@ -1,5 +1,10 @@
 # Release Notes für Elastic Export idealo.de
 
+## v1.0.6 (2017-03-30)
+
+### Hinzugefügt
+- Es wurde ein neuer Mutator hinzugefügt, welcher verhindern soll das auf nicht existente Arraykeys zugegeriffen werden.
+
 ## v1.0.5 (2017-03-28)
 
 ### Geändert
