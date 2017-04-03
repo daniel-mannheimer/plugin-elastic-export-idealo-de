@@ -3,16 +3,19 @@
 namespace ElasticExportIdealoDE\Generator;
 
 use ElasticExport\Helper\ElasticExportCoreHelper;
+use Plenty\Legacy\Repositories\Item\SalesPrice\SalesPriceSearchRepository;
 use Plenty\Modules\DataExchange\Contracts\CSVPluginGenerator;
 use Plenty\Modules\Helper\Services\ArrayHelper;
 use Plenty\Modules\Item\DataLayer\Models\Record;
 use Plenty\Modules\Item\DataLayer\Models\RecordList;
 use Plenty\Modules\DataExchange\Models\FormatSetting;
 use Plenty\Modules\Helper\Models\KeyValue;
+use Plenty\Modules\Item\SalesPrice\Models\SalesPriceSearchRequest;
 use Plenty\Modules\Order\Shipping\Models\DefaultShipping;
 use Plenty\Modules\Order\Payment\Method\Models\PaymentMethod;
 use Plenty\Modules\Item\Property\Contracts\PropertySelectionRepositoryContract;
 use Plenty\Modules\Item\Property\Models\PropertySelection;
+use Plenty\Modules\StockManagement\Stock\Contracts\StockRepositoryContract;
 use Plenty\Plugin\Log\Loggable;
 
 /**
@@ -31,6 +34,8 @@ class IdealoDE extends CSVPluginGenerator
     const SHIPPING_COST_TYPE_FLAT = 'flat';
     const SHIPPING_COST_TYPE_CONFIGURATION = 'configuration';
     const PROPERTY_IDEALO_DIREKTKAUF = 'CheckoutApproved';
+
+    const TRANSFER_RRP_YES = 1;
 
     /**
      * @var ElasticExportCoreHelper $elasticExportHelper
@@ -64,6 +69,11 @@ class IdealoDE extends CSVPluginGenerator
     private $defaultShippingList = [];
 
     /**
+     * @var SalesPriceSearchRepository
+     */
+    private $salesPriceSearchRepository;
+
+    /**
      * @var array $idlVariations
      */
     private $idlVariations = array();
@@ -76,11 +86,13 @@ class IdealoDE extends CSVPluginGenerator
      */
     public function __construct(
         ArrayHelper $arrayHelper,
-        PropertySelectionRepositoryContract $propertySelectionRepository
+        PropertySelectionRepositoryContract $propertySelectionRepository,
+        SalesPriceSearchRepository $salesPriceSearchRepository
     )
     {
         $this->arrayHelper = $arrayHelper;
         $this->propertySelectionRepository = $propertySelectionRepository;
+        $this->salesPriceSearchRepository = $salesPriceSearchRepository;
     }
 
     /**
@@ -383,13 +395,7 @@ class IdealoDE extends CSVPluginGenerator
 	 */
     private function buildRow(KeyValue $settings, $item)
 	{
-		// get price and rrp
-		$price = $this->idlVariations[$item['id']]['variationRetailPrice.price'];
-		$rrp = $this->elasticExportHelper->getRecommendedRetailPrice($this->idlVariations[$item['id']]['variationRecommendedRetailPrice.price'], $settings);
-
-		// compare price and rrp
-		$price = $price <= 0 ? $rrp : $price;
-		$rrp = $rrp <= $price ? 0 : $rrp;
+        $priceList = $this->getPriceList($item, $settings);
 
 		// get variation name
 		$variationName = $this->elasticExportHelper->getAttributeValueSetShortFrontendName($item, $settings);
@@ -422,8 +428,8 @@ class IdealoDE extends CSVPluginGenerator
 			'isbn' 				=> $this->elasticExportHelper->getBarcodeByType($item, ElasticExportCoreHelper::BARCODE_ISBN),
 			'fedas' 			=> $item['data']['item']['amazonFedas'],
 			'warranty' 			=> '',
-			'price' 			=> number_format((float)$price, 2, '.', ''),
-			'price_old' 		=> number_format((float)$rrp, 2, '.', ''),
+			'price' 			=> number_format((float)$priceList['price'], 2, '.', ''),
+			'price_old' 		=> number_format((float)$priceList['price_old'], 2, '.', ''),
 			'weight' 			=> $item['data']['variation']['weightG'],
 			'category1' 		=> $this->elasticExportHelper->getCategoryBranch((int)$item['data']['defaultCategories'][0]['id'], $settings, 1),
 			'category2' 		=> $this->elasticExportHelper->getCategoryBranch((int)$item['data']['defaultCategories'][0]['id'], $settings, 2),
@@ -698,12 +704,7 @@ class IdealoDE extends CSVPluginGenerator
                         'itemBase.id' => $idlVariation->itemBase->id,
                         'variationBase.id' => $idlVariation->variationBase->id,
                         'variationBase.customNumber' => $idlVariation->variationBase->customNumber,
-                        'itemPropertyList' => $idlVariation->itemPropertyList,
-                        'variationStock.stockNet' => $idlVariation->variationStock->stockNet,
-                        'variationRetailPrice.price' => $idlVariation->variationRetailPrice->price,
-                        'variationRetailPrice.vatValue' => $idlVariation->variationRetailPrice->vatValue,
-                        'variationRecommendedRetailPrice.price' => $idlVariation->variationRecommendedRetailPrice->price,
-                        'variationSpecialOfferRetailPrice.retailPrice' => $idlVariation->variationSpecialOfferRetailPrice->retailPrice
+                        'itemPropertyList' => $idlVariation->itemPropertyList
                     ];
                 }
             }
@@ -718,33 +719,43 @@ class IdealoDE extends CSVPluginGenerator
 	 */
     private function getStock($item)
 	{
+        $stock = $stockNet = 0;
+
+        $stockRepositoryContract = pluginApp(StockRepositoryContract::class);
+        if($stockRepositoryContract instanceof StockRepositoryContract)
+        {
+            $stockRepositoryContract->setFilters(['variationId' => $item['id']]);
+            $stockResult = $stockRepositoryContract->listStock(['stockNet'], 1, 1);
+            $stockNet = $stockResult->getResult()->first()->stockNet;
+        }
+
 		// get stock
 		if($item['data']['variation']['stockLimitation'] == 2)
 		{
 			$stock = 999;
 		}
-		elseif($item['data']['variation']['stockLimitation'] == 1 && $this->idlVariations[$item['id']]['variationStock.stockNet'] > 0)
+		elseif($item['data']['variation']['stockLimitation'] == 1 && $stockNet > 0)
 		{
-			if($this->idlVariations[$item['id']]['variationStock.stockNet'] > 999)
+			if($stockNet > 999)
 			{
 				$stock = 999;
 			}
 			else
 			{
-				$stock = $this->idlVariations[$item['id']]['variationStock.stockNet'];
+				$stock = $stockNet;
 			}
 		}
 		elseif($item['data']['variation']['stockLimitation'] == 0)
 		{
-			if($this->idlVariations[$item['id']]['variationStock.stockNet'] > 999)
+			if($stockNet > 999)
 			{
 				$stock = 999;
 			}
 			else
 			{
-				if($this->idlVariations[$item['id']]['variationStock.stockNet'] > 0)
+				if($stockNet > 0)
 				{
-					$stock = $this->idlVariations[$item['id']]['variationStock.stockNet'];
+					$stock = $stockNet;
 				}
 				else
 				{
@@ -752,11 +763,66 @@ class IdealoDE extends CSVPluginGenerator
 				}
 			}
 		}
-		else
-		{
-			$stock = 0;
-		}
 
 		return $stock;
 	}
+
+    /**
+     * Get a List of price, reduced price and the reference for the reduced price.
+     * @param array $item
+     * @param KeyValue $settings
+     * @return array
+     */
+    private function getPriceList($item, KeyValue $settings):array
+    {
+        $variationPrice = 0.00;
+
+        //getting the retail price
+        /**
+         * SalesPriceSearchRequest $salesPriceSearchRequest
+         */
+        $salesPriceSearchRequest = pluginApp(SalesPriceSearchRequest::class);
+        if($salesPriceSearchRequest instanceof SalesPriceSearchRequest)
+        {
+            $salesPriceSearchRequest->variationId = $item['id'];
+            $salesPriceSearchRequest->referrerId = $settings->get('referrerId');
+        }
+
+        // getting the sale price
+        $salesPriceSearch  = $this->salesPriceSearchRepository->search($salesPriceSearchRequest);
+        $variationPrice = $salesPriceSearch->price;
+
+        //getting the recommended retail price
+        if($settings->get('transferRrp') == self::TRANSFER_RRP_YES)
+        {
+            $salesPriceSearchRequest->type = 'rrp';
+            $variationRrp = $this->salesPriceSearchRepository->search($salesPriceSearchRequest)->price;
+        }
+        else
+        {
+            $variationRrp = 0.00;
+        }
+
+        // set the initial price and recommended retail price
+        $price = $variationPrice;
+        $rrp = $variationRrp;
+
+        // compare price and recommended retail price
+        if ($variationPrice != '' || $variationPrice != 0.00)
+        {
+            //if recommended retail price is set and less than retail price...
+            if ($variationRrp > 0 && $variationPrice > $variationRrp)
+            {
+                //set recommended retail price as selling price
+                $price = $variationRrp;
+                //set retail price as recommended retail price price
+                $rrp = $variationPrice;
+            }
+        }
+
+        return array(
+            'price'         =>  $price,
+            'price_old'     =>  $rrp
+        );
+    }
 }
