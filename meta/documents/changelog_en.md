@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export idealo.de
 
+## v1.0.7 (2017-04-04)
+
+### Changed
+- The class to catch "fatals" is now "Throwable".
+
 ## v1.0.6 (2017-03-30)
 
 ### Added

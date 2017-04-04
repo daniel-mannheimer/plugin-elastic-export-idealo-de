@@ -110,9 +110,8 @@ class IdealoDE extends CSVPluginGenerator
 				// skip main variations without attributes
 				if(strlen($attributes) <= 0 && $variation['variation']['isMain'] === false)
 				{
-					$this->getLogger(__METHOD__)
-                    ->info('ElasticExportIdealoDE::item.itemMainVariationAttributeNameError',
-                        ['variationId' => (string)$variation['data']['variation']['id']]);
+					$this->getLogger(__METHOD__)->info('ElasticExportIdealoDE::item.itemMainVariationAttributeNameError',
+                        							   ['variationId' => (string)$variation['data']['variation']['id']]);
 
                     unset($resultList['documents'][$key]);
 					continue;
@@ -143,7 +142,7 @@ class IdealoDE extends CSVPluginGenerator
 				{
 					$this->createIdlArray($idlResultList);
 				}
-				catch(\Exception $exception)
+				catch(\Throwable $exception)
 				{
 					$this->getLogger(__METHOD__)->error('ElasticExportIdealoDE::item.itemDataLayerError', $exception->getMessage());
 				}
@@ -367,7 +366,7 @@ class IdealoDE extends CSVPluginGenerator
 
 				$this->buildRow($settings, $variation);
 			}
-			catch(\Exception $exception)
+			catch(\Throwable $exception)
 			{
 				$this->getLogger(__METHOD__)->error('ElasticExportIdealoDE::item.itemExportError',
 													$exception->getMessage());

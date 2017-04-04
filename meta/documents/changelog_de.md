@@ -1,5 +1,10 @@
 # Release Notes für Elastic Export idealo.de
 
+## v1.0.7 (2017-04-04)
+
+### Geändert
+- Die Klasse zum Abfangen von "Fatals" ist nun "Throwable".
+
 ## v1.0.6 (2017-03-30)
 
 ### Hinzugefügt
