@@ -2,8 +2,8 @@
 
 ## v1.0.7 (2017-04-04)
 
-### Geändert
-- Die Klasse zum Abfangen von "Fatals" ist nun "Throwable".
+### Behoben
+- Die try-catch-Anweisung zum Abfangen von Fehlern funktioniert nun wie vorgesehen.
 
 ## v1.0.6 (2017-03-30)
 
