@@ -19,6 +19,7 @@ class ElasticExportIdealoDEServiceProvider extends DataExchangeServiceProvider
             'ElasticExportIdealoDE\ResultField\IdealoDE',
             'ElasticExportIdealoDE\Generator\IdealoDE',
             '',
+            true,
             true
         );
     }
