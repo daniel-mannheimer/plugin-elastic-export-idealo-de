@@ -4,7 +4,7 @@
 
 ### Fixed
 - Try-catch to catch errors now works as intended.
-- This plugin works now with elastic search only.
+- The format plugin is now only based on Elastic Search.
 - The performance has been improved.
 - The values ​​for the column fulfillmentType are now correctly evaluated.
 

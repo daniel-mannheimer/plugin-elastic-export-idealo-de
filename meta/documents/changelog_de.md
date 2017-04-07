@@ -4,7 +4,7 @@
 
 ### Behoben
 - Die try-catch-Anweisung zum Abfangen von Fehlern funktioniert nun wie vorgesehen.
-- Das Format funktioniert nun komplett über Elastic Search.
+- Das Formatplugin basiert nun nur noch auf Elastic Search.
 - Die Performance wurde verbessert.
 - Die Werte für die Spalte fulfillmentType werden jetzt korrekt ausgewertet.
 

@@ -28,6 +28,31 @@ class PropertyHelper
     private $itemPropertyCache = [];
 
     /**
+     * @var PropertyNameRepositoryContract
+     */
+    private $propertyNameRepository;
+
+    /**
+     * @var PropertyMarketReferenceRepositoryContract
+     */
+    private $propertyMarketReferenceRepository;
+
+
+    /**
+     * PropertyHelper constructor.
+     *
+     * @param PropertyNameRepositoryContract $propertyNameRepository
+     * @param PropertyMarketReferenceRepositoryContract $propertyMarketReferenceRepository
+     */
+    public function __construct(
+        PropertyNameRepositoryContract $propertyNameRepository,
+        PropertyMarketReferenceRepositoryContract $propertyMarketReferenceRepository)
+    {
+        $this->propertyNameRepository = $propertyNameRepository;
+        $this->propertyMarketReferenceRepository = $propertyMarketReferenceRepository;
+    }
+
+    /**
      * Get free text.
      *
      * @param  array $variation
@@ -37,22 +62,6 @@ class PropertyHelper
     {
         if(!array_key_exists($variation['data']['item']['id'], $this->itemFreeTextCache))
         {
-            /**
-             * @var PropertyNameRepositoryContract $propertyNameRepository
-             */
-            $propertyNameRepository = pluginApp(PropertyNameRepositoryContract::class);
-
-            /**
-             * @var PropertyMarketReferenceRepositoryContract $propertyMarketReferenceRepository
-             */
-            $propertyMarketReferenceRepository = pluginApp(PropertyMarketReferenceRepositoryContract::class);
-
-            if(!$propertyNameRepository instanceof PropertyNameRepositoryContract ||
-                !$propertyMarketReferenceRepository instanceof PropertyMarketReferenceRepositoryContract)
-            {
-                return array();
-            }
-
             $freeText = array();
 
             foreach($variation['data']['properties'] as $property)
@@ -61,8 +70,8 @@ class PropertyHelper
                     $property['property']['valueType'] != 'file' &&
                     $property['property']['valueType'] != 'empty')
                 {
-                    $propertyName = $propertyNameRepository->findOne($property['property']['id'], 'de');
-                    $propertyMarketReference = $propertyMarketReferenceRepository->findOne($property['property']['id'], self::IDEALO_DE);
+                    $propertyName = $this->propertyNameRepository->findOne($property['property']['id'], 'de');
+                    $propertyMarketReference = $this->propertyMarketReferenceRepository->findOne($property['property']['id'], self::IDEALO_DE);
 
                     // Skip properties which do not have the Component Id set
                     if(!($propertyName instanceof PropertyName) ||
@@ -135,22 +144,6 @@ class PropertyHelper
     {
         if(!array_key_exists($variation['data']['item']['id'], $this->itemPropertyCache))
         {
-            /**
-             * @var PropertyNameRepositoryContract $propertyNameRepository
-             */
-            $propertyNameRepository = pluginApp(PropertyNameRepositoryContract::class);
-
-            /**
-             * @var PropertyMarketReferenceRepositoryContract $propertyMarketReferenceRepository
-             */
-            $propertyMarketReferenceRepository = pluginApp(PropertyMarketReferenceRepositoryContract::class);
-
-            if(!$propertyNameRepository instanceof PropertyNameRepositoryContract ||
-                !$propertyMarketReferenceRepository instanceof PropertyMarketReferenceRepositoryContract)
-            {
-                return array();
-            }
-
             $list = array();
 
             foreach($variation['data']['properties'] as $property)
@@ -158,8 +151,8 @@ class PropertyHelper
                 if(!is_null($property['property']['id']) &&
                     $property['property']['valueType'] != 'file')
                 {
-                    $propertyName = $propertyNameRepository->findOne($property['property']['id'], 'de');
-                    $propertyMarketReference = $propertyMarketReferenceRepository->findOne($property['property']['id'], self::IDEALO_DE);
+                    $propertyName = $this->propertyNameRepository->findOne($property['property']['id'], 'de');
+                    $propertyMarketReference = $this->propertyMarketReferenceRepository->findOne($property['property']['id'], self::IDEALO_DE);
 
                     // Skip properties which do not have the External Component set up
                     if(!($propertyName instanceof PropertyName) ||

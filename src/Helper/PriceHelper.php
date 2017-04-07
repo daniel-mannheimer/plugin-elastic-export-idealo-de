@@ -5,6 +5,7 @@ namespace ElasticExportIdealoDE\Helper;
 use Plenty\Legacy\Repositories\Item\SalesPrice\SalesPriceSearchRepository;
 use Plenty\Modules\Helper\Models\KeyValue;
 use Plenty\Modules\Item\SalesPrice\Models\SalesPriceSearchRequest;
+use Plenty\Modules\Item\SalesPrice\Models\SalesPriceSearchResponse;
 use Plenty\Plugin\Log\Loggable;
 
 class PriceHelper
@@ -37,7 +38,7 @@ class PriceHelper
      */
     public function getPriceList($variation, KeyValue $settings):array
     {
-        $variationPrice = 0.00;
+        $variationPrice = $variationRrp = 0.00;
 
         /**
          * SalesPriceSearchRequest $salesPriceSearchRequest
@@ -50,18 +51,22 @@ class PriceHelper
         }
 
         // getting the retail price
-        $salesPriceSearch  = $this->salesPriceSearchRepository->search($salesPriceSearchRequest);
-        $variationPrice = $salesPriceSearch->price;
+        $salesPriceSearch = $this->salesPriceSearchRepository->search($salesPriceSearchRequest);
+        if($salesPriceSearch instanceof SalesPriceSearchResponse)
+        {
+            $variationPrice = (float)$salesPriceSearch->price;
+        }
 
         // getting the recommended retail price
         if($settings->get('transferRrp') == self::TRANSFER_RRP_YES)
         {
             $salesPriceSearchRequest->type = 'rrp';
-            $variationRrp = $this->salesPriceSearchRepository->search($salesPriceSearchRequest)->price;
-        }
-        else
-        {
-            $variationRrp = 0.00;
+            $rrpPriceSearch = $this->salesPriceSearchRepository->search($salesPriceSearchRequest);
+
+            if($rrpPriceSearch instanceof SalesPriceSearchResponse)
+            {
+                $variationRrp = (float)$rrpPriceSearch->price;
+            }
         }
 
         // set the initial price and recommended retail price
@@ -71,7 +76,7 @@ class PriceHelper
         // compare price and recommended retail price
         if ($variationPrice != '' || $variationPrice != 0.00)
         {
-            //if recommended retail price is set and less than retail price...
+            // if recommended retail price is set and less than retail price...
             if ($variationRrp > 0 && $variationPrice > $variationRrp)
             {
                 //set recommended retail price as selling price

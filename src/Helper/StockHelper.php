@@ -58,12 +58,18 @@ class StockHelper
     {
         $stock = 0;
         $stockRepositoryContract = pluginApp(StockRepositoryContract::class);
+
         if($stockRepositoryContract instanceof StockRepositoryContract)
         {
             $stockRepositoryContract->setFilters(['variationId' => $variation['id']]);
-            $stockResult = $stockRepositoryContract->listStockByWarehouseType('sales',['stockNet'],1,1);
-            $stock = $stockResult->getResult()->first()->stockNet;
+            $stockResult = $stockRepositoryContract->listStockByWarehouseType('sales', ['stockNet'], 1, 1);
+
+            if($stockResult instanceof PaginatedResult)
+            {
+                $stock = $stockResult->getResult()->first()->stockNet;
+            }
         }
+
         if($stock <= 0)
         {
             return true;
