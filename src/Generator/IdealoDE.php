@@ -187,6 +187,12 @@ class IdealoDE extends CSVPluginGenerator
                         // Check if it's the same item and add it to the grouper
                         if ($currentItemId == $previousItemId)
                         {
+                            // If if filtered by stock and stock is negative then pass
+                            if ($this->stockHelper->isFilteredByStock($variation, $filter) === true)
+                            {
+                                continue;
+                            }
+
                             $variations[] = $variation;
                         }
                         else
