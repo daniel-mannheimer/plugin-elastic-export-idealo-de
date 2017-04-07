@@ -1,9 +1,12 @@
 # Release Notes für Elastic Export idealo.de
 
-## v1.0.7 (2017-04-04)
+## v1.0.7 (2017-04-07)
 
 ### Behoben
 - Die try-catch-Anweisung zum Abfangen von Fehlern funktioniert nun wie vorgesehen.
+- Das Format funktioniert nun komplett über Elastic Search.
+- Die Performance wurde verbessert.
+- Die Werte für die Spalte fulfillmentType werden jetzt korrekt ausgewertet.
 
 ## v1.0.6 (2017-03-30)
 

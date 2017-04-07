@@ -76,6 +76,15 @@ class IdealoDE extends ResultFields
 
         // Mutators
         /**
+         * @var ImageMutator $imageMutator
+         */
+        $imageMutator = pluginApp(ImageMutator::class);
+        if($imageMutator instanceof ImageMutator)
+        {
+            $imageMutator->addMarket((int)$reference);
+        }
+
+        /**
          * @var KeyMutator $keyMutator
          */
         $keyMutator = pluginApp(KeyMutator::class);
@@ -85,14 +94,6 @@ class IdealoDE extends ResultFields
             $keyMutator->setNestedKeyList($this->getNestedKeyList());
         }
 
-        /**
-         * @var ImageMutator $imageMutator
-         */
-        $imageMutator = pluginApp(ImageMutator::class);
-        if($imageMutator instanceof ImageMutator)
-        {
-            $imageMutator->addMarket((int)$reference);
-        }
         /**
          * @var LanguageMutator $languageMutator
          */
@@ -131,6 +132,7 @@ class IdealoDE extends ResultFields
                 'variation.model',
                 'variation.isMain',
                 'variation.weightG',
+                'variation.number',
 
                 //images
                 'images.item.urlMiddle',
@@ -165,6 +167,12 @@ class IdealoDE extends ResultFields
                 'attributes.attributeValueSetId',
                 'attributes.attributeId',
                 'attributes.valueId',
+
+                //properties
+                'properties.property.id',
+                'properties.property.valueType',
+                'properties.selection.name',
+                'properties.texts.value'
             ],
 
             [
@@ -175,6 +183,7 @@ class IdealoDE extends ResultFields
             ],
         ];
 
+        // Get the associated images if reference is selected
         if($reference != -1)
         {
             $fields[1][] = $imageMutator;
@@ -189,6 +198,11 @@ class IdealoDE extends ResultFields
         return $fields;
     }
 
+    /**
+     * Returns the list of keys.
+     *
+     * @return array
+     */
     private function getKeyList()
     {
         $keyList = [
@@ -198,13 +212,13 @@ class IdealoDE extends ResultFields
             'item.amazonFedas',
 
             //variation
-            'id',
             'variation.availability.id',
             'variation.stockLimitation',
             'variation.vatId',
             'variation.model',
             'variation.isMain',
             'variation.weightG',
+            'variation.number',
 
             //unit
             'unit.content',
@@ -214,8 +228,36 @@ class IdealoDE extends ResultFields
         return $keyList;
     }
 
+    /**
+     * Returns the list of nested keys.
+     *
+     * @return mixed
+     */
     private function getNestedKeyList()
     {
+        $nestedKeyList['keys'] = [
+            //images
+            'images.all',
+
+            //sku
+            'skus',
+
+            //texts
+            'texts',
+
+            //defaultCategories
+            'defaultCategories',
+
+            //barcodes
+            'barcodes',
+
+            //attributes
+            'attributes',
+
+            //properties
+            'properties'
+        ];
+
         $nestedKeyList['keys'] = [
             //images
             'images.item' => [
@@ -270,6 +312,16 @@ class IdealoDE extends ResultFields
                 'names.name',
                 'names.lang',
             ],
+
+            //proprieties
+            'properties'    => [
+                'property.id',
+                'property.valueType',
+                'selection.name',
+                'texts.value'
+            ]
         ];
+
+        return $nestedKeyList;
     }
 }
