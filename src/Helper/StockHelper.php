@@ -11,6 +11,22 @@ class StockHelper
     use Loggable;
 
     /**
+     * @var StockRepositoryContract
+     */
+    private $stockRepositoryContract;
+
+
+    /**
+     * StockHelper constructor.
+     *
+     * @param StockRepositoryContract $stockRepositoryContract
+     */
+    public function __construct(StockRepositoryContract $stockRepositoryContract)
+    {
+        $this->stockRepositoryContract = $stockRepositoryContract;
+    }
+
+    /**
      * Checks if variation is filtered by stock.
      *
      * @param array $variation
@@ -23,11 +39,11 @@ class StockHelper
          * If the stock filter is set, this will sort out all variations
          * not matching the filter.
          */
-        if(array_key_exists('variationStock.netPositive' ,$filter))
+        if(array_key_exists('variationStock.netPositive', $filter))
         {
             return $this->isStockNegative($variation);
         }
-        elseif(array_key_exists('variationStock.isSalable' ,$filter))
+        elseif(array_key_exists('variationStock.isSalable', $filter))
         {
             if(count($filter['variationStock.isSalable']['stockLimitation']) == 2)
             {
@@ -57,12 +73,11 @@ class StockHelper
     private function isStockNegative($variation):bool
     {
         $stock = 0;
-        $stockRepositoryContract = pluginApp(StockRepositoryContract::class);
 
-        if($stockRepositoryContract instanceof StockRepositoryContract)
+        if($this->stockRepositoryContract instanceof StockRepositoryContract)
         {
-            $stockRepositoryContract->setFilters(['variationId' => $variation['id']]);
-            $stockResult = $stockRepositoryContract->listStockByWarehouseType('sales', ['stockNet'], 1, 1);
+            $this->stockRepositoryContract->setFilters(['variationId' => $variation['id']]);
+            $stockResult = $this->stockRepositoryContract->listStockByWarehouseType('sales', ['stockNet'], 1, 1);
 
             if($stockResult instanceof PaginatedResult)
             {
@@ -87,12 +102,11 @@ class StockHelper
     public function getStock($variation):int
     {
         $stock = $stockNet = 0;
-        $stockRepositoryContract = pluginApp(StockRepositoryContract::class);
 
-        if($stockRepositoryContract instanceof StockRepositoryContract)
+        if($this->stockRepositoryContract instanceof StockRepositoryContract)
         {
-            $stockRepositoryContract->setFilters(['variationId' => $variation['id']]);
-            $stockResult = $stockRepositoryContract->listStockByWarehouseType('sales', ['stockNet'], 1, 1);
+            $this->stockRepositoryContract->setFilters(['variationId' => $variation['id']]);
+            $stockResult = $this->stockRepositoryContract->listStockByWarehouseType('sales', ['stockNet'], 1, 1);
 
             if($stockResult instanceof PaginatedResult)
             {
