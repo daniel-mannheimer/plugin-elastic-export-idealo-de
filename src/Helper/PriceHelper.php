@@ -19,24 +19,15 @@ class PriceHelper
      */
     private $salesPriceSearchRepository;
 
-    /**
-     * @var SalesPriceSearchRequest
-     */
-    private $salesPriceSearchRequest;
-
 
     /**
      * PriceHelper constructor.
      *
      * @param SalesPriceSearchRepository $salesPriceSearchRepository
-     * @param SalesPriceSearchRequest $salesPriceSearchRequest
      */
-    public function __construct(
-        SalesPriceSearchRepository $salesPriceSearchRepository,
-        SalesPriceSearchRequest $salesPriceSearchRequest)
+    public function __construct(SalesPriceSearchRepository $salesPriceSearchRepository)
     {
         $this->salesPriceSearchRepository = $salesPriceSearchRepository;
-        $this->salesPriceSearchRequest = $salesPriceSearchRequest;
     }
 
     /**
@@ -50,14 +41,18 @@ class PriceHelper
     {
         $variationPrice = $variationRrp = 0.00;
 
-        if($this->salesPriceSearchRequest instanceof SalesPriceSearchRequest)
+        /**
+         * SalesPriceSearchRequest $salesPriceSearchRequest
+         */
+        $salesPriceSearchRequest = pluginApp(SalesPriceSearchRequest::class);
+        if($salesPriceSearchRequest instanceof SalesPriceSearchRequest)
         {
-            $this->salesPriceSearchRequest->variationId = $variation['id'];
-            $this->salesPriceSearchRequest->referrerId = $settings->get('referrerId');
+            $salesPriceSearchRequest->variationId = $variation['id'];
+            $salesPriceSearchRequest->referrerId = $settings->get('referrerId');
         }
 
         // getting the retail price
-        $salesPriceSearch = $this->salesPriceSearchRepository->search($this->salesPriceSearchRequest);
+        $salesPriceSearch = $this->salesPriceSearchRepository->search($salesPriceSearchRequest);
         if($salesPriceSearch instanceof SalesPriceSearchResponse)
         {
             $variationPrice = (float)$salesPriceSearch->price;
@@ -66,8 +61,8 @@ class PriceHelper
         // getting the recommended retail price
         if($settings->get('transferRrp') == self::TRANSFER_RRP_YES)
         {
-            $this->salesPriceSearchRequest->type = 'rrp';
-            $rrpPriceSearch = $this->salesPriceSearchRepository->search($this->salesPriceSearchRequest);
+            $salesPriceSearchRequest->type = 'rrp';
+            $rrpPriceSearch = $this->salesPriceSearchRepository->search($salesPriceSearchRequest);
 
             if($rrpPriceSearch instanceof SalesPriceSearchResponse)
             {

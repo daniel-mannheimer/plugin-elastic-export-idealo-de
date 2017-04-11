@@ -20,6 +20,8 @@ class IdealoDE extends ResultFields
 {
     const IDEALO_DE = 121.00;
 
+    const ALL_MARKET_REFERENCE = -1;
+
     /**
      * @var ArrayHelper
      */
@@ -81,7 +83,11 @@ class IdealoDE extends ResultFields
         $imageMutator = pluginApp(ImageMutator::class);
         if($imageMutator instanceof ImageMutator)
         {
-            $imageMutator->addMarket((int)$reference);
+            // add image reference for a specific market
+            $imageMutator->addMarket($reference);
+
+            // add image reference -1 when the image is available for all markets
+            $imageMutator->addMarket(self::ALL_MARKET_REFERENCE);
         }
 
         /**
