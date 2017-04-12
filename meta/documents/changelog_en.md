@@ -1,5 +1,13 @@
 # Release Notes for Elastic Export idealo.de
 
+## v1.0.7 (2017-04-07)
+
+### Fixed
+- Try-catch to catch errors now works as intended.
+- The format plugin is now only based on Elastic Search.
+- The performance has been improved.
+- The values ​​for the column fulfillmentType are now correctly evaluated.
+
 ## v1.0.6 (2017-03-30)
 
 ### Added
