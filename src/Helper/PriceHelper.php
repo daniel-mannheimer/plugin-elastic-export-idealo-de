@@ -4,6 +4,7 @@ namespace ElasticExportIdealoDE\Helper;
 
 use Plenty\Legacy\Repositories\Item\SalesPrice\SalesPriceSearchRepository;
 use Plenty\Modules\Helper\Models\KeyValue;
+use Plenty\Modules\Item\SalesPrice\Contracts\SalesPriceSearchRepositoryContract;
 use Plenty\Modules\Item\SalesPrice\Models\SalesPriceSearchRequest;
 use Plenty\Modules\Item\SalesPrice\Models\SalesPriceSearchResponse;
 use Plenty\Plugin\Log\Loggable;
@@ -15,17 +16,16 @@ class PriceHelper
     const TRANSFER_RRP_YES = 1;
 
     /**
-     * @var SalesPriceSearchRepository
+     * @var SalesPriceSearchRepositoryContract
      */
     private $salesPriceSearchRepository;
-
 
     /**
      * PriceHelper constructor.
      *
-     * @param SalesPriceSearchRepository $salesPriceSearchRepository
+     * @param SalesPriceSearchRepositoryContract $salesPriceSearchRepository
      */
-    public function __construct(SalesPriceSearchRepository $salesPriceSearchRepository)
+    public function __construct(SalesPriceSearchRepositoryContract $salesPriceSearchRepository)
     {
         $this->salesPriceSearchRepository = $salesPriceSearchRepository;
     }
