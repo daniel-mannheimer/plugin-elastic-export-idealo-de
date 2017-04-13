@@ -3,8 +3,8 @@
 ## v1.0.8 (2017-04-13)
 
 ### Behoben
-- Die Protokolldateien wurden behoben.
-- Die KeyMutator für das verschachtelte Schlüssel-Array wurden behoben.
+- Die Logs werden nun korrekt übersetzt.
+- Die Array-Definition der Result Fields sind nun für den KeyMutator korrekt angegeben.
 
 ## v1.0.7 (2017-04-12)
 
