@@ -220,7 +220,7 @@ class IdealoDE extends CSVPluginGenerator
                     }
 
                     $this->getLogger(__METHOD__)->debug('ElasticExportIdealoDE::item.buildRowDuration', [
-                        'Build row duration' => microtime(true) - $buildRowStartTime,
+                        'Build rows duration' => microtime(true) - $buildRowStartTime,
                     ]);
                 }
 
@@ -396,20 +396,20 @@ class IdealoDE extends CSVPluginGenerator
     private function constructData(KeyValue $settings, $variationGroup)
     {
         $this->getLogger(__METHOD__)->debug('ElasticExportIdealoDE::item.itemExportConstructGroup', [
-            'variationGroup' => count($variationGroup) . ' variations to be printed in CSV'
+            'VariationGroup' => count($variationGroup) . ' variations to be printed in CSV'
         ]);
 
         foreach($variationGroup as $variation)
         {
             $this->getLogger(__METHOD__)->debug('ElasticExportIdealoDE::item.itemExportConstructItem', [
-                'variationId' => (string)$variation['id']
+                'VariationId' => (string)$variation['id']
             ]);
 
             $this->buildRow($settings, $variation);
 		}
 
         $this->getLogger(__METHOD__)->debug('ElasticExportIdealoDE::item.itemExportConstructGroupFinished', [
-            'variationGroup' => 'variations printed successfully in CSV'
+            'VariationGroup' => 'variations printed successfully in CSV'
         ]);
     }
 
@@ -421,6 +421,12 @@ class IdealoDE extends CSVPluginGenerator
 	 */
     private function buildRow(KeyValue $settings, $variation)
 	{
+        $this->getLogger(__METHOD__)->debug('ElasticExportIdealoDE::item.itemExportConstructGroup', [
+            'Data row duration' => 'Row printing start'
+        ]);
+
+        $dataTime = microtime(true);
+
         try
         {
             // get the price list
@@ -578,7 +584,7 @@ class IdealoDE extends CSVPluginGenerator
 
                                 if(isset($attributes['name']))
                                 {
-                                    $name = $method->getAttributes()['name'];
+                                    $name = $attributes['name'];
                                     $cost = $this->elasticExportCoreHelper->calculateShippingCost(
                                         $variation['id'],
                                         $this->defaultShippingList[$defaultShipping]->shippingDestinationId,
@@ -605,6 +611,10 @@ class IdealoDE extends CSVPluginGenerator
 
                 // Get the values and print them in the CSV file
                 $this->addCSVContent(array_values($data));
+
+                $this->getLogger(__METHOD__)->debug('ElasticExportIdealoDE::item.itemExportConstructGroupFinished', [
+                    'Data row duration' => 'Row printing took: ' . (microtime(true) - $dataTime),
+                ]);
             }
             else
             {

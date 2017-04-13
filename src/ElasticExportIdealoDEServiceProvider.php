@@ -12,9 +12,6 @@ class ElasticExportIdealoDEServiceProvider extends DataExchangeServiceProvider
 {
     public function register()
     {
-        $this->getApplication()->singleton(PriceHelper::class);
-        $this->getApplication()->singleton(PropertyHelper::class);
-        $this->getApplication()->singleton(StockHelper::class);
 
     }
 
