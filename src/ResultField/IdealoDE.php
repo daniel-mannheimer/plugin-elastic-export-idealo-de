@@ -243,7 +243,8 @@ class IdealoDE extends ResultFields
     {
         $nestedKeyList['keys'] = [
             //images
-            'images.all',
+            'images.item',
+            'images.variation',
 
             //sku
             'skus',
@@ -264,7 +265,7 @@ class IdealoDE extends ResultFields
             'properties'
         ];
 
-        $nestedKeyList['keys'] = [
+        $nestedKeyList['nestedKeys'] = [
             //images
             'images.item' => [
                 'urlMiddle',
@@ -315,8 +316,6 @@ class IdealoDE extends ResultFields
                 'attributeValueSetId',
                 'attributeId',
                 'valueId',
-                'names.name',
-                'names.lang',
             ],
 
             //proprieties

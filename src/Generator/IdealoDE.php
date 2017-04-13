@@ -129,23 +129,26 @@ class IdealoDE extends CSVPluginGenerator
                     break;
                 }
 
-                $this->getLogger(__METHOD__)->debug('ElasticExportIdealoDE::log.writtenLines', [
-                    'lines written' => $limit,
+                $this->getLogger(__METHOD__)->debug('ElasticExportIdealoDE::item.writtenLines', [
+                    'Lines written' => $limit,
                 ]);
 
                 $esStartTime = microtime(true);
 
+                // Get the data from Elastic Search
                 $resultList = $elasticSearch->execute();
 
-                $this->getLogger(__METHOD__)->debug('ElasticExportIdealoDE::log.esDuration', [
+                $this->getLogger(__METHOD__)->debug('ElasticExportIdealoDE::item.esDuration', [
                     'Elastic Search duration' => microtime(true) - $esStartTime,
                 ]);
 
                 if(count($resultList['error']) > 0)
                 {
-                    $this->getLogger(__METHOD__)->error('ElasticExportIdealoDE::log.occurredElasticSearchErrors', [
-                        'error message' => $resultList['error'],
+                    $this->getLogger(__METHOD__)->error('ElasticExportIdealoDE::item.occurredElasticSearchErrors', [
+                        'Error message' => $resultList['error'],
                     ]);
+
+                    break;
                 }
 
                 $buildRowStartTime = microtime(true);
@@ -168,7 +171,7 @@ class IdealoDE extends CSVPluginGenerator
                         if(strlen($attributes) <= 0 && $variation['variation']['isMain'] === false)
                         {
                             $this->getLogger(__METHOD__)->info('ElasticExportIdealoDE::item.itemMainVariationAttributeNameError', [
-                                'variationId' => (string)$variation['id']
+                                'VariationId' => (string)$variation['id']
                             ]);
 
                             continue;
@@ -191,7 +194,7 @@ class IdealoDE extends CSVPluginGenerator
                             if ($this->stockHelper->isFilteredByStock($variation, $filter) === true)
                             {
                                 $this->getLogger(__METHOD__)->info('ElasticExportIdealoDE::item.itemExportNotPartOfExportStock', [
-                                    'variationId' => (string)$variation['id']
+                                    'VariationId' => (string)$variation['id']
                                 ]);
 
                                 continue;
@@ -216,15 +219,15 @@ class IdealoDE extends CSVPluginGenerator
                         $this->constructData($settings, $variations);
                     }
 
-                    $this->getLogger(__METHOD__)->debug('ElasticExportIdealoDE::log.buildRowDuration', [
-                        'Build Row duration' => microtime(true) - $buildRowStartTime,
+                    $this->getLogger(__METHOD__)->debug('ElasticExportIdealoDE::item.buildRowDuration', [
+                        'Build row duration' => microtime(true) - $buildRowStartTime,
                     ]);
                 }
 
             } while ($elasticSearch->hasNext());
         }
 
-        $this->getLogger(__METHOD__)->debug('ElasticExportIdealoDE::log.fileGenerationDuration', [
+        $this->getLogger(__METHOD__)->debug('ElasticExportIdealoDE::item.fileGenerationDuration', [
             'Whole file generation duration' => microtime(true) - $startTime,
         ]);
     }
@@ -606,7 +609,7 @@ class IdealoDE extends CSVPluginGenerator
             else
             {
                 $this->getLogger(__METHOD__)->info('ElasticExportIdealoDE::item.itemExportNotPartOfExportPrice', [
-                    'variationId' => (string)$variation['id']
+                    'VariationId' => (string)$variation['id']
                 ]);
             }
         }
