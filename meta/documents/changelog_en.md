@@ -3,8 +3,8 @@
 ## v1.0.8 (2017-04-13)
 
 ### Fixed
-- Fixed the log files.
-- Fixed KeyMutator for the nested keys array.
+- Logs are now correctly translated.
+- The array definitions of the result fields are now correctly defined for the KeyMutator.
 
 ## v1.0.7 (2017-04-12)
 
