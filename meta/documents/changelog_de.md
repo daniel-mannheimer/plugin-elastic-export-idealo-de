@@ -1,6 +1,12 @@
 # Release Notes für Elastic Export idealo.de
 
-## v1.0.7 (2017-04-07)
+## v1.0.8 (2017-04-13)
+
+### Behoben
+- Die Logs werden nun korrekt übersetzt.
+- Die Array-Definition der Result Fields sind nun für den KeyMutator korrekt angegeben.
+
+## v1.0.7 (2017-04-12)
 
 ### Behoben
 - Die try-catch-Anweisung zum Abfangen von Fehlern funktioniert nun wie vorgesehen.

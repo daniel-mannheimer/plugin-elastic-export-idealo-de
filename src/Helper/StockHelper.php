@@ -3,27 +3,13 @@
 namespace ElasticExportIdealoDE\Helper;
 
 use Plenty\Modules\StockManagement\Stock\Contracts\StockRepositoryContract;
+use Plenty\Modules\StockManagement\Stock\Models\Stock;
 use Plenty\Plugin\Log\Loggable;
 use Plenty\Repositories\Models\PaginatedResult;
 
 class StockHelper
 {
     use Loggable;
-
-	/**
-	 * @var StockRepositoryContract
-	 */
-    private $stockRepository;
-
-	/**
-	 * StockHelper constructor.
-	 *
-	 * @param StockRepositoryContract $stockRepositoryContract
-	 */
-    public function __construct(StockRepositoryContract $stockRepositoryContract)
-	{
-		$this->stockRepository = $stockRepositoryContract;
-	}
 
 	/**
      * Checks if variation is filtered by stock.
@@ -73,18 +59,25 @@ class StockHelper
     {
         $stock = 0;
 
-        if($this->stockRepository instanceof StockRepositoryContract)
-        {
-			$this->stockRepository->setFilters(['variationId' => $variation['id']]);
+        /**
+         * StockRepositoryContract $stockRepositoryContract
+         */
+        $stockRepositoryContract = pluginApp(StockRepositoryContract::class);
 
-            $stockResult = $this->stockRepository->listStockByWarehouseType('sales', ['stockNet'], 1, 1);
+        if($stockRepositoryContract instanceof StockRepositoryContract)
+        {
+            $stockRepositoryContract->setFilters(['variationId' => $variation['id']]);
+            $stockResult = $stockRepositoryContract->listStockByWarehouseType('sales', ['stockNet'], 1, 1);
 
             if($stockResult instanceof PaginatedResult)
             {
-                $stock = (int)$stockResult->getResult()->first()->stockNet;
-            }
+                $result = $stockResult->getResult()->first();
 
-			$this->stockRepository->clearCriteria();
+                if($result instanceof Stock)
+                {
+                    $stock = (int)$result->stockNet;
+                }
+            }
         }
 
         if($stock <= 0)
@@ -105,17 +98,25 @@ class StockHelper
     {
         $stock = $stockNet = 0;
 
-        if($this->stockRepository instanceof StockRepositoryContract)
+        /**
+         * StockRepositoryContract $stockRepositoryContract
+         */
+        $stockRepositoryContract = pluginApp(StockRepositoryContract::class);
+
+        if($stockRepositoryContract instanceof StockRepositoryContract)
         {
-			$this->stockRepository->setFilters(['variationId' => $variation['id']]);
-            $stockResult = $this->stockRepository->listStockByWarehouseType('sales', ['stockNet'], 1, 1);
+            $stockRepositoryContract->setFilters(['variationId' => $variation['id']]);
+            $stockResult = $stockRepositoryContract->listStockByWarehouseType('sales', ['stockNet'], 1, 1);
 
             if($stockResult instanceof PaginatedResult)
             {
-                $stockNet = (int)$stockResult->getResult()->first()->stockNet;
-            }
+                $result = $stockResult->getResult()->first();
 
-			$this->stockRepository->clearCriteria();
+                if ($result instanceof Stock)
+                {
+                    $stockNet = (int)$result->stockNet;
+                }
+            }
         }
 
         // get stock
