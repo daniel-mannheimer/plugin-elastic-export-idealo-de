@@ -295,31 +295,26 @@ class IdealoDE extends CSVPluginGenerator
 					{
 						$usedPaymentMethod = $this->usedPaymentMethods[$defaultShipping->id][0];
 
-						if($usedPaymentMethod instanceof PaymentMethod)
-						{
-							$usedPaymentMethodAttributes = $usedPaymentMethod->getAttributes();
-						}
-
 						/**
 						 * Three cases:
 						 */
 						if(	(count($this->usedPaymentMethods) == 0) ||
 
 							((count($this->usedPaymentMethods) == 1 || count($this->usedPaymentMethods) == 2)
-								&& isset($usedPaymentMethodAttributes['id']) && $usedPaymentMethodAttributes['id'] != $paymentMethodId)
+                                && $usedPaymentMethod instanceof PaymentMethod
+								&& isset($usedPaymentMethod->id)
+                                && $usedPaymentMethod->id != $paymentMethodId)
 						)
 						{
 							$paymentMethod = $paymentMethods[$paymentMethodId];
 
 							if($paymentMethod instanceof PaymentMethod)
 							{
-								$paymentMethodAttributes = $paymentMethod->getAttributes();
-
-								if(is_array($paymentMethodAttributes) && isset($paymentMethodAttributes['name']))
-								{
-									$data[] = $paymentMethodAttributes['name'];
-									$this->usedPaymentMethods[$defaultShipping->id][] = $paymentMethods[$paymentMethodId];
-								}
+                                if(isset($paymentMethod->name) && strlen($paymentMethod->name))
+                                {
+                                    $data[] = $paymentMethod->name;
+                                    $this->usedPaymentMethods[$defaultShipping->id][] = $paymentMethods[$paymentMethodId];
+                                }
 							}
 						}
 					}
@@ -351,28 +346,31 @@ class IdealoDE extends CSVPluginGenerator
 							continue;
 						}
 
-						$paymentMethodAttributes = $paymentMethods[$paymentMethodId]->getAttributes();
+						$paymentMethod = $paymentMethods[$paymentMethodId];
 
-                        if((count($this->usedPaymentMethods) == 0))
+                        if($paymentMethod instanceof PaymentMethod)
                         {
-                            $data[] = $paymentMethodAttributes['name'];
-                            $this->usedPaymentMethods[$defaultShipping->id][] = $paymentMethods[$paymentMethodId];
-                        }
-                        elseif(count($this->usedPaymentMethods) == 1
-                            && $this->usedPaymentMethods[1][0]->getAttributes()['id'] != $paymentMethodId)
-                        {
-                            $data[] = $paymentMethodAttributes['name'];
-                            $this->usedPaymentMethods[$defaultShipping->id][] = $paymentMethods[$paymentMethodId];
-                        }
-                        elseif($this->usedPaymentMethods[1][0] instanceof PaymentMethod
-							&& $this->usedPaymentMethods[2][0] instanceof PaymentMethod
+                            if((count($this->usedPaymentMethods) == 0))
+                            {
+                                $data[] = $paymentMethod->name;
+                                $this->usedPaymentMethods[$defaultShipping->id][] = $paymentMethods[$paymentMethodId];
+                            }
+                            elseif(count($this->usedPaymentMethods) == 1
+                                && $this->usedPaymentMethods[1][0]->id != $paymentMethodId)
+                            {
+                                $data[] = $paymentMethod->name;
+                                $this->usedPaymentMethods[$defaultShipping->id][] = $paymentMethods[$paymentMethodId];
+                            }
+                            elseif($this->usedPaymentMethods[1][0] instanceof PaymentMethod
+                                && $this->usedPaymentMethods[2][0] instanceof PaymentMethod
 
-							&& count($this->usedPaymentMethods) == 2
-                            && ($this->usedPaymentMethods[1][0]->getAttributes()['id'] != $paymentMethodId
-									&& $this->usedPaymentMethods[2][0]->getAttributes()['id'] != $paymentMethodId))
-                        {
-                            $data[] = $paymentMethodAttributes['name'];
-                            $this->usedPaymentMethods[$defaultShipping->id][] = $paymentMethods[$paymentMethodId];
+                                && count($this->usedPaymentMethods) == 2
+                                && ($this->usedPaymentMethods[1][0]->id != $paymentMethodId
+                                    && $this->usedPaymentMethods[2][0]->id != $paymentMethodId))
+                            {
+                                $data[] = $paymentMethod->name;
+                                $this->usedPaymentMethods[$defaultShipping->id][] = $paymentMethods[$paymentMethodId];
+                            }
                         }
                     }
                 }
@@ -556,13 +554,10 @@ class IdealoDE extends CSVPluginGenerator
                         {
                             if($method instanceof PaymentMethod)
                             {
-                                $attributes = $method->getAttributes();
-
-                                if(isset($attributes['name']))
+                                if(isset($method->name))
                                 {
-                                    $name = $attributes['name'];
                                     $cost = $this->elasticExportCoreHelper->getShippingCost($variation['data']['item']['id'], $settings, $method->id);
-                                    $data[$name] = number_format((float)$cost, 2, '.', '');
+                                    $data[$method->name] = number_format((float)$cost, 2, '.', '');
                                 }
                             }
                             else
@@ -580,17 +575,14 @@ class IdealoDE extends CSVPluginGenerator
                         {
                             if($method instanceof PaymentMethod)
                             {
-                                $attributes = $method->getAttributes();
-
-                                if(isset($attributes['name']))
+                                if(isset($method->name))
                                 {
-                                    $name = $attributes['name'];
                                     $cost = $this->elasticExportCoreHelper->calculateShippingCost(
-                                        $variation['id'],
+                                        $variation['data']['item']['id'],
                                         $this->defaultShippingList[$defaultShipping]->shippingDestinationId,
                                         $this->defaultShippingList[$defaultShipping]->referrerId,
                                         $method->id);
-                                    $data[$name] = number_format((float)$cost, 2, '.', '');
+                                    $data[$method->name] = number_format((float)$cost, 2, '.', '');
                                 }
                             }
                             else
