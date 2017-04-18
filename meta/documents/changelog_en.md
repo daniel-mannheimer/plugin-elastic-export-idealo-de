@@ -1,10 +1,12 @@
 # Release Notes for Elastic Export idealo.de
 
-## v1.0.8 (2017-04-13)
+## v1.0.8 (2017-04-18)
 
 ### Fixed
 - Logs are now correctly translated.
 - The array definitions of the result fields are now correctly defined for the KeyMutator.
+- Stock is now correctly calculated.
+- Payment Methods are now correctly evaluated.
 
 ## v1.0.7 (2017-04-12)
 

@@ -2,6 +2,7 @@
 
 namespace ElasticExportIdealoDE\Helper;
 
+use Illuminate\Support\Collection;
 use Plenty\Modules\StockManagement\Stock\Contracts\StockRepositoryContract;
 use Plenty\Modules\StockManagement\Stock\Models\Stock;
 use Plenty\Plugin\Log\Loggable;
@@ -71,11 +72,17 @@ class StockHelper
 
             if($stockResult instanceof PaginatedResult)
             {
-                $result = $stockResult->getResult()->first();
+                $result = $stockResult->getResult();
 
-                if($result instanceof Stock)
+                if($result instanceof Collection)
                 {
-                    $stock = (int)$result->stockNet;
+                    foreach($result as $model)
+                    {
+                        if($model instanceof Stock)
+                        {
+                            $stock = (int)$model->stockNet;
+                        }
+                    }
                 }
             }
         }
@@ -110,11 +117,17 @@ class StockHelper
 
             if($stockResult instanceof PaginatedResult)
             {
-                $result = $stockResult->getResult()->first();
+                $result = $stockResult->getResult();
 
-                if ($result instanceof Stock)
+                if($result instanceof Collection)
                 {
-                    $stockNet = (int)$result->stockNet;
+                    foreach($result as $model)
+                    {
+                        if($model instanceof Stock)
+                        {
+                            $stockNet = (int)$model->stockNet;
+                        }
+                    }
                 }
             }
         }
