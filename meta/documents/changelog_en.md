@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export idealo.de
 
+## v1.0.9 (2017-04-26)
+
+### Fixed
+- Stock Filter is now correctly evaluated.
+
 ## v1.0.8 (2017-04-18)
 
 ### Fixed

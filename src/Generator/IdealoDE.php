@@ -26,6 +26,8 @@ class IdealoDE extends CSVPluginGenerator
     const IDEALO_DE = 121.00;
     const IDEALO_CHECKOUT = 121.02;
 
+    const DELIMITER = "\t"; // tab
+
     const DEFAULT_PAYMENT_METHOD = 'vorkasse';
 
     const SHIPPING_COST_TYPE_FLAT = 'flat';
@@ -105,7 +107,7 @@ class IdealoDE extends CSVPluginGenerator
 
         $settings = $this->arrayHelper->buildMapFromObjectList($formatSettings, 'key', 'value');
 
-        $this->setDelimiter("	"); // tab not space!
+        $this->setDelimiter(self::DELIMITER);
 
         $this->addCSVContent($this->head($settings));
 
@@ -176,8 +178,16 @@ class IdealoDE extends CSVPluginGenerator
 
                             continue;
                         }
-                        // New line is prepared for the CSV printer
-                        $limit += 1;
+
+                        // If filtered by stock is set and stock is negative, then skip the variation
+                        if ($this->stockHelper->isFilteredByStock($variation, $filter) === true)
+                        {
+                            $this->getLogger(__METHOD__)->info('ElasticExportIdealoDE::item.itemExportNotPartOfExportStock', [
+                                'VariationId' => (string)$variation['id']
+                            ]);
+
+                            continue;
+                        }
 
                         // Check if it's the first item from the resultList
                         if ($currentItemId === null)
@@ -190,17 +200,11 @@ class IdealoDE extends CSVPluginGenerator
                         // Check if it's the same item and add it to the grouper
                         if ($currentItemId == $previousItemId)
                         {
-                            // If filtered by stock is set and stock is negative, then skip the variation
-                            if ($this->stockHelper->isFilteredByStock($variation, $filter) === true)
-                            {
-                                $this->getLogger(__METHOD__)->info('ElasticExportIdealoDE::item.itemExportNotPartOfExportStock', [
-                                    'VariationId' => (string)$variation['id']
-                                ]);
-
-                                continue;
-                            }
-
+                            // Add the new variation to the grouper
                             $variations[] = $variation;
+
+                            // New line will be printed in the CSV
+                            $limit += 1;
                         }
                         else
                         {
@@ -210,6 +214,9 @@ class IdealoDE extends CSVPluginGenerator
                             $variations = array();
                             $variations[] = $variation;
                             $previousItemId = $variation['data']['item']['id'];
+
+                            // New variation is added in the grouper, will be further printed
+                            $limit += 1;
                         }
                     }
 

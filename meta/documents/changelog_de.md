@@ -1,5 +1,10 @@
 # Release Notes für Elastic Export idealo.de
 
+## v1.0.9 (2017-04-26)
+
+### Behoben
+- Der Bestand wird nun korrekt ausgewertet.
+
 ## v1.0.8 (2017-04-18)
 
 ### Behoben
