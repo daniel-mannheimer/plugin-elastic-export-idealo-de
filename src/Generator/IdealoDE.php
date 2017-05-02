@@ -3,6 +3,7 @@
 namespace ElasticExportIdealoDE\Generator;
 
 use ElasticExport\Helper\ElasticExportCoreHelper;
+use ElasticExport\Helper\ElasticExportStockHelper;
 use ElasticExportIdealoDE\Helper\PriceHelper;
 use ElasticExportIdealoDE\Helper\PropertyHelper;
 use ElasticExportIdealoDE\Helper\StockHelper;
@@ -72,26 +73,34 @@ class IdealoDE extends CSVPluginGenerator
      */
     private $defaultShippingList = [];
 
+	/**
+	 * @var ElasticExportStockHelper $elasticExportStockHelper
+	 */
+	private $elasticExportStockHelper;
 
-    /**
-     * IdealoDE constructor.
-     *
-     * @param ArrayHelper $arrayHelper
-     * @param PriceHelper $priceHelper
-     * @param PropertyHelper $propertyHelper
-     * @param StockHelper $stockHelper
-     */
+
+	/**
+	 * IdealoDE constructor.
+	 *
+	 * @param ArrayHelper $arrayHelper
+	 * @param PriceHelper $priceHelper
+	 * @param PropertyHelper $propertyHelper
+	 * @param StockHelper $stockHelper
+	 * @param ElasticExportStockHelper $elasticExportStockHelper
+	 */
     public function __construct(
         ArrayHelper $arrayHelper,
         PriceHelper $priceHelper,
         PropertyHelper $propertyHelper,
-        StockHelper $stockHelper
+        StockHelper $stockHelper,
+		ElasticExportStockHelper $elasticExportStockHelper
     )
     {
         $this->arrayHelper = $arrayHelper;
         $this->priceHelper = $priceHelper;
         $this->propertyHelper = $propertyHelper;
         $this->stockHelper = $stockHelper;
+		$this->elasticExportStockHelper = $elasticExportStockHelper;
     }
 
     /**
@@ -180,7 +189,7 @@ class IdealoDE extends CSVPluginGenerator
                         }
 
                         // If filtered by stock is set and stock is negative, then skip the variation
-                        if ($this->stockHelper->isFilteredByStock($variation, $filter) === true)
+                        if ($this->elasticExportStockHelper->isFilteredByStock($variation, $filter) === true)
                         {
                             $this->getLogger(__METHOD__)->info('ElasticExportIdealoDE::item.itemExportNotPartOfExportStock', [
                                 'VariationId' => (string)$variation['id']
