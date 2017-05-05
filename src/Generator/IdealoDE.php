@@ -86,21 +86,18 @@ class IdealoDE extends CSVPluginGenerator
 	 * @param PriceHelper $priceHelper
 	 * @param PropertyHelper $propertyHelper
 	 * @param StockHelper $stockHelper
-	 * @param ElasticExportStockHelper $elasticExportStockHelper
 	 */
     public function __construct(
         ArrayHelper $arrayHelper,
         PriceHelper $priceHelper,
         PropertyHelper $propertyHelper,
-        StockHelper $stockHelper,
-		ElasticExportStockHelper $elasticExportStockHelper
+        StockHelper $stockHelper
     )
     {
         $this->arrayHelper = $arrayHelper;
         $this->priceHelper = $priceHelper;
         $this->propertyHelper = $propertyHelper;
         $this->stockHelper = $stockHelper;
-		$this->elasticExportStockHelper = $elasticExportStockHelper;
     }
 
     /**
@@ -112,6 +109,7 @@ class IdealoDE extends CSVPluginGenerator
      */
     protected function generatePluginContent($elasticSearch, array $formatSettings = [], array $filter = [])
     {
+		$this->elasticExportStockHelper = pluginApp(ElasticExportStockHelper::class);
         $this->elasticExportCoreHelper = pluginApp(ElasticExportCoreHelper::class);
 
         $settings = $this->arrayHelper->buildMapFromObjectList($formatSettings, 'key', 'value');
