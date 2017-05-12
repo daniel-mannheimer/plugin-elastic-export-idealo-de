@@ -3,6 +3,7 @@
 namespace ElasticExportIdealoDE\ResultField;
 
 use Cache\Util\Key;
+use Plenty\Modules\Cloud\ElasticSearch\Lib\ElasticSearch;
 use Plenty\Modules\DataExchange\Contracts\ResultFields;
 use Plenty\Modules\DataExchange\Models\FormatSetting;
 use Plenty\Modules\Helper\Services\ArrayHelper;
@@ -49,9 +50,9 @@ class IdealoDE extends ResultFields
 
         $reference = $settings->get('referrerId') ? $settings->get('referrerId') : self::IDEALO_DE;
 
-        $this->setOrderByList(['variation.itemId', 'ASC']);
+        $this->setOrderByList(['item.id', ElasticSearch::SORTING_ORDER_ASC]);
 
-        $itemDescriptionFields = ['texts.urlPath'];
+        $itemDescriptionFields = ['texts.urlPath', 'texts.lang'];
         $itemDescriptionFields[] = ($settings->get('nameId')) ? 'texts.name' . $settings->get('nameId') : 'texts.name1';
 
         if($settings->get('descriptionType') == 'itemShortDescription'
@@ -292,6 +293,7 @@ class IdealoDE extends ResultFields
             //texts
             'texts'  => [
                 'urlPath',
+                'lang',
                 'name1',
                 'name2',
                 'name3',

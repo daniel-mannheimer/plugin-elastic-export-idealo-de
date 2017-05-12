@@ -209,9 +209,6 @@ class IdealoDE extends CSVPluginGenerator
                         {
                             // Add the new variation to the grouper
                             $variations[] = $variation;
-
-                            // New line will be printed in the CSV
-                            $limit += 1;
                         }
                         else
                         {
@@ -221,10 +218,10 @@ class IdealoDE extends CSVPluginGenerator
                             $variations = array();
                             $variations[] = $variation;
                             $previousItemId = $variation['data']['item']['id'];
-
-                            // New variation is added in the grouper, will be further printed
-                            $limit += 1;
                         }
+
+                        // New line was added
+                        $limit += 1;
                     }
 
                     // Write the last batch of variations
@@ -462,10 +459,10 @@ class IdealoDE extends CSVPluginGenerator
 
                 $data = [
                     'article_id' 		=> '',
-                    'deeplink' 			=> $this->elasticExportCoreHelper->getUrl($variation, $settings, true, false),
-                    'name' 				=> $this->elasticExportCoreHelper->getName($variation, $settings) . (strlen($variationName) ? ' ' . $variationName : ''),
-                    'short_description' => $this->elasticExportCoreHelper->getPreviewText($variation, $settings),
-                    'description' 		=> $this->elasticExportCoreHelper->getDescription($variation, $settings),
+                    'deeplink' 			=> $this->elasticExportCoreHelper->getMutatedUrl($variation, $settings, true, false),
+                    'name' 				=> $this->elasticExportCoreHelper->getMutatedName($variation, $settings) . (strlen($variationName) ? ' ' . $variationName : ''),
+                    'short_description' => $this->elasticExportCoreHelper->getMutatedPreviewText($variation, $settings),
+                    'description' 		=> $this->elasticExportCoreHelper->getMutatedDescription($variation, $settings),
                     'article_no' 		=> $variation['data']['variation']['number'],
                     'producer' 			=> $this->elasticExportCoreHelper->getExternalManufacturerName((int)$variation['data']['item']['manufacturer']['id']),
                     'model' 			=> $variation['data']['variation']['model'],

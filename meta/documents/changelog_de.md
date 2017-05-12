@@ -1,5 +1,11 @@
 # Release Notes für Elastic Export idealo.de
 
+## v1.0.12 (2017-05-12)
+
+### Fixed
+- Es wurde ein Fehler behoben, bei dem Varianten nicht in der richtigen Reihenfolge gelisted wurde.
+- Es wurde ein Fehler behoben, der dazu geführt hat, dass das Exportformat Texte in der falschen Sprache exportierte.
+
 ## v1.0.11 (2017-05-05)
 
 ### Behoben

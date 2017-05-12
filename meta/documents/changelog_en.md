@@ -1,5 +1,11 @@
 # Release Notes for Elastic Export idealo.de
 
+## v1.0.12 (2017-05-12)
+
+### Fixed
+- An issue was fixed which caused the variations not to be exported in the correct order.
+- An issue was fixed which caused the export format to export texts in the wrong language.
+
 ## v1.0.11 (2017-05-05)
 
 ### Fixed
