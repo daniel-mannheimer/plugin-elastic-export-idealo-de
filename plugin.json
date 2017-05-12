@@ -22,6 +22,6 @@
     "en":"idealo.de"
   },
   "dependencies": {
-    "ElasticExport": ">=1.0.12"
+    "ElasticExport": ">=1.0.14"
   }
 }
