@@ -102,7 +102,7 @@ In der folgenden Tabelle finden Sie spezifische Hinweise zu den Einstellungen, F
         <td>
             Im Gegensatz zu anderen Formaten spielt hier die Auswahl einer Zahlungsart keine Rolle. Es werden alle Zahlungsarten der gewählten Konfiguration exportiert.<br>
             Wenn keine Konfiguration gewählt wurde, werden alle Konfigurationen und alle Zahlungsarten exportiert.<br>
-            Wenn <b>Pauschale Versandkosten übertragen gewählt wurde, wird nur Vorkasse als Zahlungsart übermittelt.</b>
+            Wenn <b>Pauschale Versandkosten übertragen</b> gewählt wurde, wird nur Vorkasse als Zahlungsart übermittelt.
         </td>        
     </tr>
     <tr>
