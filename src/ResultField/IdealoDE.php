@@ -179,7 +179,9 @@ class IdealoDE extends ResultFields
                 'properties.property.id',
                 'properties.property.valueType',
                 'properties.selection.name',
-                'properties.texts.value'
+                'properties.texts.value',
+                'properties.valueInt',
+                'properties.valueFloat',
             ],
 
             [
@@ -325,7 +327,9 @@ class IdealoDE extends ResultFields
                 'property.id',
                 'property.valueType',
                 'selection.name',
-                'texts.value'
+                'texts.value',
+                'valueInt',
+                'valueFloat',
             ]
         ];
 

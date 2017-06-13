@@ -16,6 +16,8 @@ class PropertyHelper
     const PROPERTY_TYPE_TEXT = 'text';
     const PROPERTY_TYPE_SELECTION = 'selection';
     const PROPERTY_TYPE_EMPTY = 'empty';
+    const PROPERTY_TYPE_INT = 'int';
+    const PROPERTY_TYPE_FLOAT = 'float';
 
     const PROPERTY_IDEALO_DIREKTKAUF    = 'CheckoutApproved';
     const PROPERTY_IDEALO_SPEDITION     = 'FulfillmentType:Spedition';
@@ -193,6 +195,23 @@ class PropertyHelper
                     {
                         $list[(string)$propertyMarketReference->externalComponent] = $propertyMarketReference->externalComponent;
                     }
+
+                    if($property['property']['valueType'] == self::PROPERTY_TYPE_INT)
+                    {
+                        if(!is_null($property['valueInt']))
+                        {
+                            $list[(string)$propertyMarketReference->externalComponent] = $property['valueInt'];
+                        }
+                    }
+
+                    if($property['property']['valueType'] == self::PROPERTY_TYPE_FLOAT)
+                    {
+                        if(!is_null($property['valueFloat']))
+                        {
+                            $list[(string)$propertyMarketReference->externalComponent] = $property['valueFloat'];
+                        }
+                    }
+
                 }
             }
 
