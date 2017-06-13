@@ -1,5 +1,12 @@
 # Release Notes für Elastic Export idealo.de
 
+## v1.0.13 (2017-06-13)
+
+### Geändert
+- Die Beschreibung des Plugins wurde erweitert.
+- Merkmale vom Typ "Kommazahl" und "ganze Zahl" können jetzt für dieses Format genutzt werden.
+- Die Markierung für Idealo Direktkauf in der Spalte "CheckoutApproved" wird nun ebenfalls auf "true" gesetzt, wenn die Variante für die Auftragsherkunft "Idealo Direktkauf" verfügbar geschaltet wurde.
+
 ## v1.0.12 (2017-05-12)
 
 ### Fixed

@@ -12,12 +12,15 @@ class PropertyHelper
     use Loggable;
 
     const IDEALO_DE = 121.00;
+    const IDEALO_DE_DIREKTKAUF = 121.02;
 
     const PROPERTY_TYPE_TEXT = 'text';
     const PROPERTY_TYPE_SELECTION = 'selection';
     const PROPERTY_TYPE_EMPTY = 'empty';
+    const PROPERTY_TYPE_INT = 'int';
+    const PROPERTY_TYPE_FLOAT = 'float';
 
-    const PROPERTY_IDEALO_DIREKTKAUF    = 'CheckoutApproved';
+    const PROPERTY_IDEALO_CHECKOUT_APPROVED    = 'CheckoutApproved';
     const PROPERTY_IDEALO_SPEDITION     = 'FulfillmentType:Spedition';
     const PROPERTY_IDEALO_PAKETDIENST   = 'FulfillmentType:Paketdienst';
 
@@ -53,6 +56,28 @@ class PropertyHelper
     {
         $this->propertyNameRepository = $propertyNameRepository;
         $this->propertyMarketReferenceRepository = $propertyMarketReferenceRepository;
+    }
+
+    /**
+     * Set checkoutApproved if either property or market availability is set.
+     *
+     * @param $variation
+     * @return string
+     */
+    public function getCheckoutApproved($variation):string
+    {
+        $checkoutApproved = 'false';
+
+        $propertyIsSet = $this->getProperty($variation, self::PROPERTY_IDEALO_CHECKOUT_APPROVED) === true;
+
+        $marketAvailabilityIsSet = in_array(self::IDEALO_DE_DIREKTKAUF, $variation['data']['ids']['markets']);
+
+        if ($propertyIsSet || $marketAvailabilityIsSet)
+        {
+            $checkoutApproved = 'true';
+        }
+
+        return $checkoutApproved;
     }
 
     /**
@@ -122,7 +147,7 @@ class PropertyHelper
 
         if(array_key_exists($property, $itemPropertyList))
         {
-            if ($property == self::PROPERTY_IDEALO_DIREKTKAUF   ||
+            if ($property == self::PROPERTY_IDEALO_CHECKOUT_APPROVED   ||
                 $property == self::PROPERTY_IDEALO_SPEDITION    ||
                 $property == self::PROPERTY_IDEALO_PAKETDIENST)
             {
@@ -193,6 +218,23 @@ class PropertyHelper
                     {
                         $list[(string)$propertyMarketReference->externalComponent] = $propertyMarketReference->externalComponent;
                     }
+
+                    if($property['property']['valueType'] == self::PROPERTY_TYPE_INT)
+                    {
+                        if(!is_null($property['valueInt']))
+                        {
+                            $list[(string)$propertyMarketReference->externalComponent] = $property['valueInt'];
+                        }
+                    }
+
+                    if($property['property']['valueType'] == self::PROPERTY_TYPE_FLOAT)
+                    {
+                        if(!is_null($property['valueFloat']))
+                        {
+                            $list[(string)$propertyMarketReference->externalComponent] = $property['valueFloat'];
+                        }
+                    }
+
                 }
             }
 

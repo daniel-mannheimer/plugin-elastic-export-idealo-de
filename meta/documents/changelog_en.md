@@ -1,5 +1,12 @@
 # Release Notes for Elastic Export idealo.de
 
+## v1.0.13 (2017-06-13)
+
+### Changed
+- The description of the plugin was enhanced.
+- Properties of the type "Decimal number" or "whole number" can now be used for this format. 
+- The tag to enable a variation for Idealo Direktkauf in the column "checkoutApproved" will now also be set true if the referrer "idealo Direktkauf" was set available for this variation.
+
 ## v1.0.12 (2017-05-12)
 
 ### Fixed

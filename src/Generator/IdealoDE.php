@@ -451,11 +451,7 @@ class IdealoDE extends CSVPluginGenerator
                 $stock = $this->stockHelper->getStock($variation);
 
                 // get the checkout approved property
-                $checkoutApproved = 'false';
-                if($this->propertyHelper->getProperty($variation, self::PROPERTY_IDEALO_DIREKTKAUF) === true)
-                {
-                    $checkoutApproved = 'true';
-                }
+                $checkoutApproved = $this->propertyHelper->getCheckoutApproved($variation);
 
                 $data = [
                     'article_id' 		=> '',
@@ -520,11 +516,9 @@ class IdealoDE extends CSVPluginGenerator
                         $data['fulfillmentType'] = 'Spedition';
 
                         $twoManHandling = $this->propertyHelper->getProperty($variation, 'TwoManHandlingPrice');
-                        $twoManHandling = str_replace(",", '.', $twoManHandling);
                         $twoManHandling = number_format((float)$twoManHandling, 2, ',', '');
 
                         $disposal = $this->propertyHelper->getProperty($variation, 'DisposalPrice');
-                        $disposal = str_replace(",", '.', $disposal);
                         $disposal = number_format((float)$disposal, 2, ',', '');
 
                         $data['twoManHandlingPrice'] = ($twoManHandling > 0) ? $twoManHandling : '';
