@@ -160,6 +160,9 @@ class IdealoDE extends ResultFields
                 'unit.content',
                 'unit.id',
 
+                //marketAvailability
+                'ids.markets',
+
                 //sku
                 'skus.sku',
 

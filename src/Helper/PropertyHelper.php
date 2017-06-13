@@ -12,6 +12,7 @@ class PropertyHelper
     use Loggable;
 
     const IDEALO_DE = 121.00;
+    const IDEALO_DE_CHECKOUT = 121.02;
 
     const PROPERTY_TYPE_TEXT = 'text';
     const PROPERTY_TYPE_SELECTION = 'selection';
@@ -55,6 +56,28 @@ class PropertyHelper
     {
         $this->propertyNameRepository = $propertyNameRepository;
         $this->propertyMarketReferenceRepository = $propertyMarketReferenceRepository;
+    }
+
+    /**
+     * Set checkoutApproved if either property or market availability is set.
+     *
+     * @param $variation
+     * @return string
+     */
+    public function getCheckoutApproved($variation):string
+    {
+        $checkoutApproved = 'false';
+
+        $propertyIsSet = $this->getProperty($variation, self::PROPERTY_IDEALO_DIREKTKAUF) === true;
+
+        $marketAvailabilityIsSet = in_array(self::IDEALO_DE_CHECKOUT, $variation['data']['ids']['markets']);
+
+        if ($propertyIsSet || $marketAvailabilityIsSet)
+        {
+            $checkoutApproved = 'true';
+        }
+
+        return $checkoutApproved;
     }
 
     /**
