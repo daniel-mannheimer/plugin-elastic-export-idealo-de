@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export idealo.de
 
+## v1.0.14 (2017-06-14)
+
+### Changed
+- Smaller adjustments on the format of user guide were made.
+
 ## v1.0.13 (2017-06-13)
 
 ### Changed

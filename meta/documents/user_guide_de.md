@@ -3,11 +3,11 @@
 
 <div class="container-toc"></div>
 
-## Bei idealo.de registrieren
+## 1 Bei idealo.de registrieren
 
 idealo.de ist ein deutsches Preisportal und bietet Preisvergleiche mit Angeboten und Preisen, Testberichten sowie Preisbenachrichtigungen und Produktvergleichen. Weitere Informationen zu idealo.de finden Sie auf der Handbuchseite [idealo Direktkauf einrichten](https://www.plentymarkets.eu/handbuch/multi-channel/idealo/). Um das Plugin für idealo.de einzurichten, registrieren Sie sich zunächst als Händler.
 
-## Elastic Export IdealoDE-Plugin in plentymarkets einrichten
+## 2 Das Format IdealoDE-Plugin in plentymarkets einrichten
 
 Um dieses Format nutzen zu können, benötigen Sie das Plugin Elastic Export.
 
@@ -17,15 +17,15 @@ In der folgenden Tabelle finden Sie spezifische Hinweise zu den Einstellungen, F
 
 <table>
     <tr>
-        <th>
+        <th align="center">
             Einstellung
         </th>
-        <th>
+        <th align="center">
             Erläuterung
         </th>
     </tr>
     <tr>
-        <th colspan="2">
+        <th align="center" colspan="2">
             Einstellungen
         </th>
     </tr>
@@ -54,7 +54,7 @@ In der folgenden Tabelle finden Sie spezifische Hinweise zu den Einstellungen, F
         </td>        
     </tr>
     <tr>
-        <th colspan="2">
+        <th align="center" colspan="2">
             Artikelfilter
         </th>
     </tr>
@@ -75,7 +75,7 @@ In der folgenden Tabelle finden Sie spezifische Hinweise zu den Einstellungen, F
         </td>        
     </tr>
     <tr>
-        <th colspan="2">
+        <th align="center" colspan="2">
             Formateinstellungen
         </th>
     </tr>
@@ -121,10 +121,10 @@ In der folgenden Tabelle finden Sie spezifische Hinweise zu den Einstellungen, F
 
 <table>
     <tr>
-        <th>
+        <th align="center">
             Spaltenbezeichnung
         </th>
-        <th>
+        <th align="center">
             Erläuterung
         </th>
     </tr>
