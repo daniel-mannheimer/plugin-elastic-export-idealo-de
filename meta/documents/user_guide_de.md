@@ -17,17 +17,17 @@ In der folgenden Tabelle finden Sie spezifische Hinweise zu den Einstellungen, F
 
 <table>
     <tr>
-        <th align="center">
+        <th>
             Einstellung
         </th>
-        <th align="center">
+        <th>
             Erläuterung
         </th>
     </tr>
     <tr>
-        <th align="center" colspan="2">
+        <td class="th" colspan="2">
             Einstellungen
-        </th>
+        </td>
     </tr>
     <tr>
         <td>
@@ -54,9 +54,9 @@ In der folgenden Tabelle finden Sie spezifische Hinweise zu den Einstellungen, F
         </td>        
     </tr>
     <tr>
-        <th align="center" colspan="2">
+        <td class="th" colspan="2">
             Artikelfilter
-        </th>
+        </td>
     </tr>
     <tr>
         <td>
@@ -75,9 +75,9 @@ In der folgenden Tabelle finden Sie spezifische Hinweise zu den Einstellungen, F
         </td>        
     </tr>
     <tr>
-        <th align="center" colspan="2">
+        <td class="th" colspan="2">
             Formateinstellungen
-        </th>
+        </td>
     </tr>
     <tr>
         <td>
@@ -121,10 +121,10 @@ In der folgenden Tabelle finden Sie spezifische Hinweise zu den Einstellungen, F
 
 <table>
     <tr>
-        <th align="center">
+        <th>
             Spaltenbezeichnung
         </th>
-        <th align="center">
+        <th>
             Erläuterung
         </th>
     </tr>
