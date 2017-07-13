@@ -1,5 +1,10 @@
 # Release Notes für Elastic Export idealo.de
 
+## v1.0.15 (2017-07-13)
+
+### Behoben
+- Es wurde ein Fehler behoben, bei dem bei der Preisermittlung das Zielland nicht berücksichtigt wurde.
+
 ## v1.0.14 (2017-06-14)
 
 ### Geändert
@@ -14,7 +19,7 @@
 
 ## v1.0.12 (2017-05-12)
 
-### Fixed
+### Behoben
 - Es wurde ein Fehler behoben, bei dem Varianten nicht in der richtigen Reihenfolge gelisted wurde.
 - Es wurde ein Fehler behoben, der dazu geführt hat, dass das Exportformat Texte in der falschen Sprache exportierte.
 

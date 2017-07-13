@@ -1,5 +1,15 @@
 # Release Notes for Elastic Export idealo.de
 
+## v1.0.15 (2017-07-13)
+
+### Fixed
+- An issue was fixed which caused the price output to not consider the destination.
+
+## v1.0.14 (2017-06-14)
+
+### Changed
+- Smaller adjustments on the format of user guide were made.
+
 ## v1.0.14 (2017-06-14)
 
 ### Changed

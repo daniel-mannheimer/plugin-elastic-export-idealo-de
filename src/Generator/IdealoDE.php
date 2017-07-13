@@ -3,6 +3,7 @@
 namespace ElasticExportIdealoDE\Generator;
 
 use ElasticExport\Helper\ElasticExportCoreHelper;
+use ElasticExport\Helper\ElasticExportPriceHelper;
 use ElasticExport\Helper\ElasticExportStockHelper;
 use ElasticExportIdealoDE\Helper\PriceHelper;
 use ElasticExportIdealoDE\Helper\PropertyHelper;
@@ -49,11 +50,6 @@ class IdealoDE extends CSVPluginGenerator
     private $arrayHelper;
 
     /**
-     * @var PriceHelper
-     */
-    private $priceHelper;
-
-    /**
      * @var PropertyHelper
      */
     private $propertyHelper;
@@ -78,24 +74,25 @@ class IdealoDE extends CSVPluginGenerator
 	 */
 	private $elasticExportStockHelper;
 
+	/**
+	 * @var ElasticExportPriceHelper $elasticExportPriceHelper
+	 */
+	private $elasticExportPriceHelper;
 
 	/**
 	 * IdealoDE constructor.
 	 *
 	 * @param ArrayHelper $arrayHelper
-	 * @param PriceHelper $priceHelper
 	 * @param PropertyHelper $propertyHelper
 	 * @param StockHelper $stockHelper
 	 */
     public function __construct(
         ArrayHelper $arrayHelper,
-        PriceHelper $priceHelper,
         PropertyHelper $propertyHelper,
         StockHelper $stockHelper
     )
     {
         $this->arrayHelper = $arrayHelper;
-        $this->priceHelper = $priceHelper;
         $this->propertyHelper = $propertyHelper;
         $this->stockHelper = $stockHelper;
     }
@@ -111,6 +108,7 @@ class IdealoDE extends CSVPluginGenerator
     {
 		$this->elasticExportStockHelper = pluginApp(ElasticExportStockHelper::class);
         $this->elasticExportCoreHelper = pluginApp(ElasticExportCoreHelper::class);
+        $this->elasticExportPriceHelper = pluginApp(ElasticExportPriceHelper::class);
 
         $settings = $this->arrayHelper->buildMapFromObjectList($formatSettings, 'key', 'value');
 
@@ -439,10 +437,25 @@ class IdealoDE extends CSVPluginGenerator
         try
         {
             // get the price list
-            $priceList = $this->priceHelper->getPriceList($variation, $settings);
+            $priceList = $this->elasticExportPriceHelper->getPriceList($variation, $settings, 2, '.');
+
+			if((float)$priceList['recommendedRetailPrice'] > 0)
+			{
+				$price = $priceList['recommendedRetailPrice'] > $priceList['price'] ? $priceList['price'] : $priceList['recommendedRetailPrice'];
+			}
+			else
+			{
+				$price = $priceList['price'];
+			}
+
+			$rrp = $priceList['recommendedRetailPrice'] > $priceList['price'] ? $priceList['recommendedRetailPrice'] : $priceList['price'];
+			if((float)$rrp == 0 || (float)$price == 0 || (float)$rrp == (float)$price)
+			{
+				$rrp = '';
+			}
 
             // only variations with the Retail Price greater than zero will be handled
-            if($priceList['variationRetailPrice.price'] > 0)
+            if($price > 0)
             {
                 // get variation name
                 $variationName = $this->elasticExportCoreHelper->getAttributeValueSetShortFrontendName($variation, $settings);
@@ -467,8 +480,8 @@ class IdealoDE extends CSVPluginGenerator
                     'isbn' 				=> $this->elasticExportCoreHelper->getBarcodeByType($variation, ElasticExportCoreHelper::BARCODE_ISBN),
                     'fedas' 			=> $variation['data']['item']['amazonFedas'],
                     'warranty' 			=> '',
-                    'price' 			=> number_format((float)$priceList['variationRetailPrice.price'], 2, '.', ''),
-                    'price_old' 		=> number_format((float)$priceList['variationRecommendedRetailPrice.price'], 2, '.', ''),
+                    'price' 			=> $price,
+                    'price_old' 		=> $rrp,
                     'weight' 			=> $variation['data']['variation']['weightG'],
                     'category1' 		=> $this->elasticExportCoreHelper->getCategoryBranch((int)$variation['data']['defaultCategories'][0]['id'], $settings, 1),
                     'category2' 		=> $this->elasticExportCoreHelper->getCategoryBranch((int)$variation['data']['defaultCategories'][0]['id'], $settings, 2),
@@ -479,7 +492,7 @@ class IdealoDE extends CSVPluginGenerator
                     'category_concat' 	=> $this->elasticExportCoreHelper->getCategory((int)$variation['data']['defaultCategories'][0]['id'], $settings->get('lang'), $settings->get('plentyId')),
                     'image_url_preview' => $this->elasticExportCoreHelper->getMainImage($variation, $settings, 'preview'),
                     'image_url' 		=> $this->elasticExportCoreHelper->getMainImage($variation, $settings, 'normal'),
-                    'base_price' 		=> $this->elasticExportCoreHelper->getBasePrice($variation, $priceList),
+                    'base_price' 		=> $this->elasticExportPriceHelper->getBasePrice($variation, $priceList['price'], $settings->get('lang'), '/', false, true, $priceList['currency']),
                     'free_text_field'   => $this->propertyHelper->getFreeText($variation),
                     'checkoutApproved'	=> $checkoutApproved,
                 ];
