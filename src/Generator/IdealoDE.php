@@ -439,8 +439,23 @@ class IdealoDE extends CSVPluginGenerator
             // get the price list
             $priceList = $this->elasticExportPriceHelper->getPriceList($variation, $settings, 2, '.');
 
+			if((float)$priceList['recommendedRetailPrice'] > 0)
+			{
+				$price = $priceList['recommendedRetailPrice'] > $priceList['price'] ? $priceList['price'] : $priceList['recommendedRetailPrice'];
+			}
+			else
+			{
+				$price = $priceList['price'];
+			}
+
+			$rrp = $priceList['recommendedRetailPrice'] > $priceList['price'] ? $priceList['recommendedRetailPrice'] : $priceList['price'];
+			if((float)$rrp == 0 || (float)$price == 0 || (float)$rrp == (float)$price)
+			{
+				$rrp = '';
+			}
+
             // only variations with the Retail Price greater than zero will be handled
-            if($priceList['price'] > 0)
+            if($price > 0)
             {
                 // get variation name
                 $variationName = $this->elasticExportCoreHelper->getAttributeValueSetShortFrontendName($variation, $settings);
@@ -465,8 +480,8 @@ class IdealoDE extends CSVPluginGenerator
                     'isbn' 				=> $this->elasticExportCoreHelper->getBarcodeByType($variation, ElasticExportCoreHelper::BARCODE_ISBN),
                     'fedas' 			=> $variation['data']['item']['amazonFedas'],
                     'warranty' 			=> '',
-                    'price' 			=> $priceList['price'],
-                    'price_old' 		=> $priceList['recommendedRetailPrice'],
+                    'price' 			=> $price,
+                    'price_old' 		=> $rrp,
                     'weight' 			=> $variation['data']['variation']['weightG'],
                     'category1' 		=> $this->elasticExportCoreHelper->getCategoryBranch((int)$variation['data']['defaultCategories'][0]['id'], $settings, 1),
                     'category2' 		=> $this->elasticExportCoreHelper->getCategoryBranch((int)$variation['data']['defaultCategories'][0]['id'], $settings, 2),
