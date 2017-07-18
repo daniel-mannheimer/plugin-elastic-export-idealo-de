@@ -1,5 +1,10 @@
 # Release Notes für Elastic Export idealo.de
 
+## v1.0.16 (2017-07-18)
+
+  ### Geändert
+ - Das Plugin Elastic Export ist nun Voraussetzung zur Nutzung des Plugin-Formats.
+
 ## v1.0.15 (2017-07-13)
 
 ### Behoben

@@ -16,12 +16,10 @@
   "categories": [
     "3523"
   ],
-  "version": "1.0.15",
+  "version": "1.0.16",
   "marketplaceName": {
     "de":"idealo.de",
     "en":"idealo.de"
   },
-  "dependencies": {
-    "ElasticExport": ">=1.0.15"
-  }
+  "require": ["ElasticExport"]
 }
