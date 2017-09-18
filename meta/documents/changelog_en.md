@@ -1,5 +1,11 @@
 # Release Notes for Elastic Export idealo.de
 
+## v1.0.17 (2017-09-18)
+
+### Fixed
+- The RRP is no longer exported in the **price** column if it is lower than the selling price.
+- The first variant or item image will be exported if the corresponding format setting was chosen.
+
 ## v1.0.8 (2017-07-18)
   
 ### Changed 
