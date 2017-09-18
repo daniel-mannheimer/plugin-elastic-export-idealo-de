@@ -449,8 +449,7 @@ class IdealoDE extends CSVPluginGenerator
                 $stock = $this->stockHelper->getStock($variation);
 
                 //getImages
-                $imageList = $this->elasticExportCoreHelper->getImageListInOrder($variation, $settings, 1, ElasticExportCoreHelper::VARIATION_IMAGES, 'normal');
-                $imageListPreview = $this->elasticExportCoreHelper->getImageListInOrder($variation, $settings, 1, ElasticExportCoreHelper::VARIATION_IMAGES, 'preview');
+                $imageDataList = $this->elasticExportCoreHelper->getImageListInOrder($variation, $settings, 1, ElasticExportCoreHelper::VARIATION_IMAGES, 'normal', true);
 
                 // get the checkout approved property
                 $checkoutApproved = $this->propertyHelper->getCheckoutApproved($variation);
@@ -479,8 +478,8 @@ class IdealoDE extends CSVPluginGenerator
                     'category5' 		=> $this->elasticExportCoreHelper->getCategoryBranch((int)$variation['data']['defaultCategories'][0]['id'], $settings, 5),
                     'category6' 		=> $this->elasticExportCoreHelper->getCategoryBranch((int)$variation['data']['defaultCategories'][0]['id'], $settings, 6),
                     'category_concat' 	=> $this->elasticExportCoreHelper->getCategory((int)$variation['data']['defaultCategories'][0]['id'], $settings->get('lang'), $settings->get('plentyId')),
-                    'image_url_preview' => $imageListPreview[0],
-                    'image_url' 		=> $imageList[0],
+                    'image_url_preview' => $this->elasticExportCoreHelper->getImageUrlBySize($imageDataList[0], ElasticExportCoreHelper::SIZE_PREVIEW),
+                    'image_url' 		=> $this->elasticExportCoreHelper->getImageUrlBySize($imageDataList[0], ElasticExportCoreHelper::SIZE_NORMAL),
                     'base_price' 		=> $this->elasticExportPriceHelper->getBasePrice($variation, $priceList['price'], $settings->get('lang'), '/', false, true, $priceList['currency']),
                     'free_text_field'   => $this->propertyHelper->getFreeText($variation),
                     'checkoutApproved'	=> $checkoutApproved,
