@@ -1,5 +1,11 @@
 # Release Notes für Elastic Export idealo.de
 
+## v1.0.17 (2017-09-18)
+
+### Behoben
+- Der UVP wird nun nicht mehr in der Spalte **price** exportiert, wenn dieser niedriger als der Verkaufspreis ist.
+- Es wird jetzt das erste Varianten- oder Artikelbild exportiert, wenn die entsprechende Formateinstellung gewählt wurde.
+
 ## v1.0.16 (2017-07-18)
 
   ### Geändert

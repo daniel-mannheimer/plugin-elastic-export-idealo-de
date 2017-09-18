@@ -437,31 +437,20 @@ class IdealoDE extends CSVPluginGenerator
         try
         {
             // get the price list
-            $priceList = $this->elasticExportPriceHelper->getPriceList($variation, $settings, 2, '.');
-
-			if((float)$priceList['recommendedRetailPrice'] > 0)
-			{
-				$price = $priceList['recommendedRetailPrice'] > $priceList['price'] ? $priceList['price'] : $priceList['recommendedRetailPrice'];
-			}
-			else
-			{
-				$price = $priceList['price'];
-			}
-
-			$rrp = $priceList['recommendedRetailPrice'] > $priceList['price'] ? $priceList['recommendedRetailPrice'] : $priceList['price'];
-			if((float)$rrp == 0 || (float)$price == 0 || (float)$rrp == (float)$price)
-			{
-				$rrp = '';
-			}
+            $priceList = $this->getPriceList($variation, $settings);
 
             // only variations with the Retail Price greater than zero will be handled
-            if($price > 0)
+            if($priceList['price'] > 0)
             {
                 // get variation name
                 $variationName = $this->elasticExportCoreHelper->getAttributeValueSetShortFrontendName($variation, $settings);
 
                 // calculate stock
                 $stock = $this->stockHelper->getStock($variation);
+
+                //getImages
+                $imageList = $this->elasticExportCoreHelper->getImageListInOrder($variation, $settings, 1, ElasticExportCoreHelper::VARIATION_IMAGES, 'normal');
+                $imageListPreview = $this->elasticExportCoreHelper->getImageListInOrder($variation, $settings, 1, ElasticExportCoreHelper::VARIATION_IMAGES, 'preview');
 
                 // get the checkout approved property
                 $checkoutApproved = $this->propertyHelper->getCheckoutApproved($variation);
@@ -480,8 +469,8 @@ class IdealoDE extends CSVPluginGenerator
                     'isbn' 				=> $this->elasticExportCoreHelper->getBarcodeByType($variation, ElasticExportCoreHelper::BARCODE_ISBN),
                     'fedas' 			=> $variation['data']['item']['amazonFedas'],
                     'warranty' 			=> '',
-                    'price' 			=> $price,
-                    'price_old' 		=> $rrp,
+                    'price' 			=> $priceList['price'],
+                    'price_old' 		=> $priceList['price_old'],
                     'weight' 			=> $variation['data']['variation']['weightG'],
                     'category1' 		=> $this->elasticExportCoreHelper->getCategoryBranch((int)$variation['data']['defaultCategories'][0]['id'], $settings, 1),
                     'category2' 		=> $this->elasticExportCoreHelper->getCategoryBranch((int)$variation['data']['defaultCategories'][0]['id'], $settings, 2),
@@ -490,8 +479,8 @@ class IdealoDE extends CSVPluginGenerator
                     'category5' 		=> $this->elasticExportCoreHelper->getCategoryBranch((int)$variation['data']['defaultCategories'][0]['id'], $settings, 5),
                     'category6' 		=> $this->elasticExportCoreHelper->getCategoryBranch((int)$variation['data']['defaultCategories'][0]['id'], $settings, 6),
                     'category_concat' 	=> $this->elasticExportCoreHelper->getCategory((int)$variation['data']['defaultCategories'][0]['id'], $settings->get('lang'), $settings->get('plentyId')),
-                    'image_url_preview' => $this->elasticExportCoreHelper->getMainImage($variation, $settings, 'preview'),
-                    'image_url' 		=> $this->elasticExportCoreHelper->getMainImage($variation, $settings, 'normal'),
+                    'image_url_preview' => $imageListPreview[0],
+                    'image_url' 		=> $imageList[0],
                     'base_price' 		=> $this->elasticExportPriceHelper->getBasePrice($variation, $priceList['price'], $settings->get('lang'), '/', false, true, $priceList['currency']),
                     'free_text_field'   => $this->propertyHelper->getFreeText($variation),
                     'checkoutApproved'	=> $checkoutApproved,
@@ -642,4 +631,40 @@ class IdealoDE extends CSVPluginGenerator
             ]);
         }
 	}
+
+    /**
+     * @param  array    $variation
+     * @param  KeyValue $settings
+     * @return array
+     */
+    private function getPriceList(array $variation, KeyValue $settings):array
+    {
+        $rrp = '';
+
+        $priceList = $this->elasticExportPriceHelper->getPriceList($variation, $settings, 2, '.');
+
+        if($priceList['specialPrice'] < $priceList['price'] && $priceList['specialPrice'] > 0)
+        {
+            $price = $priceList['specialPrice'];
+        }
+        else
+        {
+            $price = $priceList['price'];
+        }
+
+        if($priceList['recommendedRetailPrice'] > $priceList['price'] && $priceList['recommendedRetailPrice'] > $price)
+        {
+            $rrp = $priceList['recommendedRetailPrice'];
+        }
+        elseif($priceList['price'] > $price)
+        {
+            $rrp = $priceList['price'];
+        }
+
+        return [
+            'price' => $price,
+            'price_old' => $rrp,
+            'currency' => $priceList['currency']
+        ];
+    }
 }
