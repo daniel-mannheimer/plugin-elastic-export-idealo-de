@@ -72,7 +72,9 @@ class PropertyHelper
 
         $marketAvailabilityIsSet = in_array(self::IDEALO_DE_CHECKOUT, $variation['data']['ids']['markets']);
 
-        if ($propertyIsSet || $marketAvailabilityIsSet)
+        $globalConfigIsSet = $this->configRepository->get('ElasticExportIdealoDE.global.CheckoutApproved') === true;
+        
+        if ($propertyIsSet || $marketAvailabilityIsSet || $globalConfigIsSet)
         {
             $checkoutApproved = 'true';
         }
