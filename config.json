@@ -3,7 +3,7 @@
         "tab"       : "Global",
         "key"       : "global.CheckoutApproved",
         "label"     : "Enable Checkout by default for all items",
-        "type"      : "category_select"
+        "type"      : "checkbox",
         "default"   : "false"        
     }
 ]
